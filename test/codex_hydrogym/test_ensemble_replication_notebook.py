@@ -1,6 +1,8 @@
 """Safety and provenance contracts for the Databricks replication notebook."""
 
 import ast
+import json
+import os
 from pathlib import Path
 import runpy
 
@@ -18,12 +20,14 @@ def test_notebook_is_source_format_and_syntax_valid():
 def test_notebook_defaults_to_review_and_requires_exact_run_confirmation():
     source = NOTEBOOK.read_text(encoding="utf-8")
 
-    assert '_ensure_widget("action", "review", ["review", "install", "run"])' in source
+    assert '_ensure_widget("action", "review", ["review", "install", "preflight", "run"])' in source
     assert 'if ACTION == "run":' in source
     assert "if CONFIRMATION != CONFIRMATION_TOKEN:" in source
-    assert "RUN_PORTABILITY_REPRODUCTION:" in source
-    assert '"claim_role": "portability_reproduction_only"' in source
-    assert '"decision_bearing_execution": False' in source
+    assert "RUN_PRIMARY_DATABRICKS_REPLICATION:" in source
+    assert '"claim_role": "primary_decision_bearing_execution"' in source
+    assert '"decision_bearing_execution": True' in source
+    assert '"sole_analysis_set": True' in source
+    assert '"local_partial_artifact_in_analysis": False' in source
     assert '"prior_or_local_results_in_analysis": 0' in source
 
 
@@ -67,11 +71,32 @@ def test_notebook_review_mode_round_trips_the_companion_wheel(tmp_path):
         def dropdown(self, name, default, _choices):
             self.values[name] = default
 
+    class _Notebook:
+        exit_payloads = []
+
+        def exit(self, payload):
+            self.exit_payloads.append(payload)
+
     class _Dbutils:
         widgets = _Widgets()
+        notebook = _Notebook()
 
-    namespace = runpy.run_path(str(NOTEBOOK), init_globals={"dbutils": _Dbutils()})
+    # The notebook pins JAX env vars for the Databricks GPU runtime; keep that
+    # process-global mutation from leaking into the rest of the test session.
+    jax_env = {name: os.environ.get(name) for name in ("JAX_ENABLE_X64", "JAX_PLATFORMS")}
+    try:
+        namespace = runpy.run_path(str(NOTEBOOK), init_globals={"dbutils": _Dbutils()})
+    finally:
+        for name, value in jax_env.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
 
     assert namespace["WHEEL_REVIEW"]["artifact_and_source_hashes_valid"] is True
     assert namespace["WHEEL_REVIEW"]["implementation_file_count"] == 8
     assert namespace["RUN_SUMMARY"] is None
+    assert len(_Notebook.exit_payloads) == 1
+    review_payload = json.loads(_Notebook.exit_payloads[0])
+    assert review_payload["action"] == "review"
+    assert review_payload["cfds_executed"] == 0
