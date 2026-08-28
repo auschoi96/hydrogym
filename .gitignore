@@ -147,3 +147,4 @@ node_modules/
 .cursor/
 .isaac/
 .polly/
+!codex_hydrogym/notebooks/artifacts/*.whl
