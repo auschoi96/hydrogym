@@ -1,0 +1,41 @@
+{
+  "run_name": "codex_hydrogym Re=100 Gate 0 v3 zero-CFD protocol review",
+  "timeout_seconds": 1800,
+  "tasks": [
+    {
+      "task_key": "freeze_and_review_v3_protocol",
+      "environment_key": "v3_review_environment",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_v3/re100_v3_protocol_review",
+        "source": "WORKSPACE",
+        "base_parameters": {
+          "wheel_path": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_v3/hydrogym-1.0.0-py3-none-any.whl",
+          "expected_wheel_sha256": "e381b42d415b0644fd773be67ef9aab94133289e6559933bf72e079da50e2e51"
+        }
+      }
+    }
+  ],
+  "environments": [
+    {
+      "environment_key": "v3_review_environment",
+      "spec": {
+        "client": "4",
+        "dependencies": [
+          "jax==0.7.2",
+          "jaxlib==0.7.2",
+          "chex==0.1.92",
+          "flax==0.12.0",
+          "gymnasium==1.3.0",
+          "gymnax==0.0.9",
+          "matplotlib==3.11.1",
+          "navix==0.11.0",
+          "numpy==2.5.2",
+          "omegaconf==2.3.1",
+          "scipy==1.18.0",
+          "toml==0.10.2",
+          "tree-math==0.2.1"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,185 @@
+{
+  "artifact_digest": "36b906637a2aa95354e28b67c4bbe150552839877010d450ac33629919885c1e",
+  "claim_boundary": "Gate 0 only tests adaptive forced-mode cancellation on static-phase episodes. It performs no RL, proves no learned improvement, and does not show that PPO can infer a per-reset phase; that requires phase randomization inside vectorized resets before training.",
+  "config": {
+    "action_time": 1.0,
+    "constant_candidates": [
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.25,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.1767766952966369,
+        0.17677669529663687,
+        0.0,
+        0.0
+      ],
+      [
+        1.5308084989341915e-17,
+        0.25,
+        0.0,
+        0.0
+      ],
+      [
+        -0.17677669529663687,
+        0.1767766952966369,
+        0.0,
+        0.0
+      ],
+      [
+        -0.25,
+        3.061616997868383e-17,
+        0.0,
+        0.0
+      ],
+      [
+        -0.17677669529663692,
+        -0.17677669529663687,
+        0.0,
+        0.0
+      ],
+      [
+        -4.592425496802574e-17,
+        -0.25,
+        0.0,
+        0.0
+      ],
+      [
+        0.17677669529663684,
+        -0.17677669529663692,
+        0.0,
+        0.0
+      ],
+      [
+        0.5,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.3535533905932738,
+        0.35355339059327373,
+        0.0,
+        0.0
+      ],
+      [
+        3.061616997868383e-17,
+        0.5,
+        0.0,
+        0.0
+      ],
+      [
+        -0.35355339059327373,
+        0.3535533905932738,
+        0.0,
+        0.0
+      ],
+      [
+        -0.5,
+        6.123233995736766e-17,
+        0.0,
+        0.0
+      ],
+      [
+        -0.35355339059327384,
+        -0.35355339059327373,
+        0.0,
+        0.0
+      ],
+      [
+        -9.184850993605148e-17,
+        -0.5,
+        0.0,
+        0.0
+      ],
+      [
+        0.3535533905932737,
+        -0.35355339059327384,
+        0.0,
+        0.0
+      ]
+    ],
+    "controller_warmup_intervals": 50,
+    "convergence_seed": 101,
+    "development_phase_turns": [
+      0.0,
+      0.25,
+      0.5,
+      0.75
+    ],
+    "development_seeds": [
+      7
+    ],
+    "dt": 0.002,
+    "effort_match_atol": 1e-12,
+    "feedback_gain_candidates": [
+      0.25,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "forcing_wavenumber": 4,
+    "grid_size": [
+      64,
+      64
+    ],
+    "heldout_phase_turns": [
+      0.125,
+      0.375,
+      0.625,
+      0.875
+    ],
+    "heldout_seeds": [
+      101,
+      211,
+      307
+    ],
+    "initial_perturbation_amplitude": 0.001,
+    "maximum_cfl": 0.5,
+    "maximum_divergence_ratio": 1e-10,
+    "maximum_reward_identity_relative_error": 1e-10,
+    "maximum_spatial_arm_tke_relative_difference": 0.05,
+    "maximum_spatial_effect_difference": 0.03,
+    "maximum_spectral_tail_fraction": 0.05,
+    "maximum_temporal_arm_tke_relative_difference": 0.02,
+    "maximum_temporal_effect_difference": 0.02,
+    "maximum_zero_mode_ratio": 1e-10,
+    "minimum_absolute_tke_reduction": 0.005,
+    "minimum_relative_tke_reduction": 0.05,
+    "minimum_seed_win_fraction": 0.6666666666666666,
+    "observation_contract_version": "signed_forced_mode_v1",
+    "precision": "float64",
+    "protocol_id": "offset_phase_fp64_re100_gate0_v2",
+    "radial_action_bound": 0.5,
+    "reynolds_number": 100.0,
+    "save_time": 0.2,
+    "schema_version": "codex_hydrogym.gate0.v1",
+    "scored_intervals": 100,
+    "spatial_refinement_grid_size": [
+      96,
+      96
+    ],
+    "temporal_refinement_dt": 0.001,
+    "uncontrolled_burn_in_intervals": 100
+  },
+  "implementation_digest": "5cc598c6b6e6168ec78d80360326d8d595ada81f4c9790b4d1c86b67f28350c4",
+  "implementation_files": {
+    "codex_hydrogym/gate0/cli.py": "34b2bad66e5b2b43b516f59c3ec2ac96bc3f8a1add0db382c36ab571f37d5df0",
+    "codex_hydrogym/gate0/protocol.py": "cfb0f668ae7c689497cfba64ee4d9ab85b3c59a0842e14f118a1fbccea8157d4",
+    "codex_hydrogym/gate0/re100_v2.py": "32b9dedb8c7da9e383561eecd3fcfa8cb9ab824ca311c3988898c2e4b6ea39e4",
+    "hydrogym/jax/envs/kolmogorov.py": "9c1c50dd94f57b116cf32dfbdbcccf2c37d73684e2c9e18107aa1051137db954",
+    "hydrogym/jax/kolmogorov_contract.py": "339041c0bbcb3df448f947742aac93df8b49d76ab4e4b4947200b2689a6ad2a9",
+    "hydrogym/jax/solvers/base.py": "a344274a907eb4e9383895d2f952b6d71d07c2389d3b7bd5cc7424d310f34bd5",
+    "hydrogym/jax/utils/utils.py": "955c4ac8a05cb929405331d70b4f8b51b5f296227a57c4fb6240cdf042b1a4d4"
+  },
+  "protocol_fingerprint": "2729e365a5712b824d4d1a2257ade19519aa454509a221790ddcabf2021b32a9",
+  "status": "frozen_before_execution"
+}

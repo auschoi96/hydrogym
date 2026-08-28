@@ -1,0 +1,10 @@
+resources:
+  experiments:
+    codex_hydrogym_experiment:
+      name: /Shared/codex_hydrogym
+      tags:
+        - key: project
+          value: codex_hydrogym
+        - key: purpose
+          value: fluid_rl_human_alignment
+

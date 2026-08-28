@@ -1,0 +1,34 @@
+{
+  "artifact_digest": "deb256b550dd7d3d0fc88746db4ca7b0cbcdeb60f8b921d4fe19bb0466ad2e8a",
+  "databricks_execution": {
+    "claim_role": "primary_decision_bearing_execution",
+    "output_namespace": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_replication/evidence/269507101a52-a5ab894e5ff4/databricks-primary-20260825",
+    "prior_or_local_results_in_analysis": 0,
+    "sole_analysis_set": true,
+    "workspace_profile": "dais-demo"
+  },
+  "local_execution": {
+    "analysis_eligibility": "excluded_quarantined_partial_execution",
+    "condition_artifact_count": 1,
+    "interruption_reason": "user_directed_platform_switch_to_databricks",
+    "partial_artifact": {
+      "byte_length": 542479,
+      "content_or_metrics_inspected": false,
+      "modified_at_utc": "2026-08-25T20:05:07Z",
+      "raw_sha256": "59ccee255aea7b73c88f3e28bc64a8fca00aed7c681476b231a4a2831bcc9cfd",
+      "relative_path": "condition_base.json"
+    },
+    "result_artifact_exists": false,
+    "state": "stopped_after_completed_base_condition_boundary"
+  },
+  "recorded_at_utc": "2026-08-25T20:29:56Z",
+  "schema": "codex_hydrogym.ensemble_replication_platform_transition.v1",
+  "scientific_boundary": {
+    "decision_made_blind_to_local_partial_metrics": true,
+    "local_partial_must_not_be_deleted_pooled_or_interpreted": true,
+    "protocol_or_threshold_change": false,
+    "reserved_cases_opened": false
+  },
+  "study_fingerprint": "269507101a5206fccab3c90504f7a46009f28381070a0d97875a06429fb19b62",
+  "transition_reason": "execution_platform_only"
+}

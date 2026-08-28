@@ -1,0 +1,71 @@
+{
+  "name": "codex_hydrogym_ppo",
+  "description": "Reusable codex_hydrogym HydroGym JAX PPO workload on one H100 with MLflow and Unity Catalog model registration.",
+  "max_concurrent_runs": 1,
+  "timeout_seconds": 21600,
+  "tags": {
+    "project": "codex_hydrogym",
+    "workflow": "ai_runtime_ppo"
+  },
+  "tasks": [
+    {
+      "task_key": "codex_hydrogym_ppo",
+      "run_if": "ALL_SUCCESS",
+      "timeout_seconds": 0,
+      "ai_runtime_task": {
+        "experiment": "codex_hydrogym",
+        "deployments": [
+          {
+            "command_path": "/Workspace/Users/austin.choi@databricks.com/.air/cli_launch/codex_hydrogym/codex_hydrogym_h100_ppo_70111a0607074cb2/command.sh",
+            "compute": {
+              "accelerator_type": "GPU_1xH100",
+              "accelerator_count": 1
+            }
+          }
+        ],
+        "code_source_path": "/Workspace/Users/austin.choi@databricks.com/.air/repo_snapshots/air/air_20260823_060444.tar.gz",
+        "mlflow_experiment_directory": "/Workspace/Shared",
+        "mlflow_run": "codex_hydrogym_h100_ppo"
+      },
+      "environment_key": "codex_hydrogym_air",
+      "environment_variables_key": "codex_hydrogym_air_env",
+      "max_retries": 1,
+      "retry_on_timeout": true
+    }
+  ],
+  "environments": [
+    {
+      "environment_key": "codex_hydrogym_air",
+      "spec": {
+        "environment_version": "5",
+        "dependencies": [
+          "jax[cuda12]==0.7.2",
+          "jaxlib==0.7.2",
+          "flax==0.12.0",
+          "optax==0.2.8",
+          "distrax==0.1.9",
+          "gymnax==0.0.9",
+          "chex==0.1.92",
+          "navix==0.11.0",
+          "tree-math==0.2.1",
+          "matplotlib==3.10.7",
+          "omegaconf==2.3.0",
+          "toml==0.10.2",
+          "pyyaml==6.0.3",
+          "mlflow==3.11.1"
+        ]
+      }
+    }
+  ],
+  "environment_variables": [
+    {
+      "environment_variables_key": "codex_hydrogym_air_env",
+      "variables": {
+        "CODEX_HYDROGYM_OUTPUT_DIR": "/tmp/codex_hydrogym_air",
+        "JAX_ENABLE_X64": "false",
+        "XLA_PYTHON_CLIENT_PREALLOCATE": "false",
+        "MPLBACKEND": "Agg"
+      }
+    }
+  ]
+}

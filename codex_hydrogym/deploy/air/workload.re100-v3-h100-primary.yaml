@@ -1,0 +1,64 @@
+experiment_name: re100_gate0_v3_h100_primary
+mlflow_run_name: re100_gate0_v3_one_full_heldout_execution
+mlflow_experiment_directory: /Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_v3
+
+environment:
+  version: '5'
+  dependencies:
+    - jax[cuda12]==0.7.2
+    - jaxlib==0.7.2
+    - chex==0.1.92
+    - flax==0.12.0
+    - gymnasium==1.3.0
+    - gymnax==0.0.9
+    - matplotlib==3.11.1
+    - mlflow==3.11.1
+    - navix==0.11.0
+    - numpy==2.5.2
+    - omegaconf==2.3.1
+    - scipy==1.18.0
+    - toml==0.10.2
+    - tree-math==0.2.1
+
+code_source:
+  type: snapshot
+  snapshot:
+    root_path: ../..
+    include_paths:
+      - deploy/air/re100_v3_execution_entrypoint.py
+      - evidence/gate0_v3/885ff77559da-17fd18a51e8b/protocol.json
+      - evidence/gate0_v3/885ff77559da-17fd18a51e8b/review_attestation.json
+
+compute:
+  num_accelerators: 1
+  accelerator_type: GPU_1xH100
+
+env_variables:
+  CODEX_HYDROGYM_V3_ACTION: run
+  CODEX_HYDROGYM_V3_OUTPUT_DIR: /Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_v3/evidence/885ff77559da-17fd18a51e8b
+  CODEX_HYDROGYM_V3_WHEEL_PATH: /Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_v3/hydrogym-1.0.0-py3-none-any.whl
+  JAX_ENABLE_X64: "1"
+  JAX_PLATFORMS: cuda
+  PYTHONUNBUFFERED: "1"
+  XLA_PYTHON_CLIENT_PREALLOCATE: "false"
+
+secrets:
+  CODEX_HYDROGYM_GATE0_V3_EXECUTION_TOKEN: codex-hydrogym-gate0-v3/one-full-execution-885ff77559da
+
+parameters:
+  claim_role: gate0_v3_primary_decision_bearing_execution
+  expected_trajectory_count: 360
+  expected_window_count: 720
+  implementation_digest: 17fd18a51e8bfb2e8b6d018e7fe824a9b68921fe38d62d231e6634d6203b9dfe
+  precision: float64
+  protocol_artifact_digest: 024039795a851caa0a1ea77580983aa2c869d40d05564f0765fdc56f1920db3f
+  review_attestation_artifact_digest: 39b4ab964755ff1ea1d7747939ac77517219faa2648702adbc4d022040902667
+  study_fingerprint: 885ff77559dadd18cc54d91a30ecb6a48477a4c2baed46fc728635ea3eae8b38
+
+timeout_minutes: 1440
+max_retries: 0
+
+command: |
+  cd "$CODE_SOURCE_PATH"
+  python -m pip install --disable-pip-version-check --no-deps "$CODEX_HYDROGYM_V3_WHEEL_PATH"
+  python deploy/air/re100_v3_execution_entrypoint.py

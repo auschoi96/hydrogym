@@ -1,0 +1,29 @@
+{
+  "run_name": "codex_hydrogym independent ensemble-replication audit",
+  "timeout_seconds": 1200,
+  "tasks": [
+    {
+      "task_key": "independent_artifact_audit",
+      "environment_key": "audit_environment",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_replication/ensemble_replication_audit",
+        "source": "WORKSPACE",
+        "base_parameters": {
+          "output_dir": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_replication/evidence/269507101a52-a5ab894e5ff4/databricks-primary-20260825",
+          "wheel_path": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_replication/hydrogym-1.0.0-py3-none-any.whl",
+          "transition_path": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_replication/platform_transition.json",
+          "backend_amendment_path": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_replication/execution_backend_amendment.json"
+        }
+      }
+    }
+  ],
+  "environments": [
+    {
+      "environment_key": "audit_environment",
+      "spec": {
+        "client": "4",
+        "dependencies": []
+      }
+    }
+  ]
+}

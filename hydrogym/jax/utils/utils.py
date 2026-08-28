@@ -78,12 +78,17 @@ def dealiasing(advection_term):
     Args:
         vel_hat: velocity field in Fourier space
     """
-    n, m = advection_term.shape[0], advection_term.shape[1]
-    kn, km = int(n // 2 * 2 // 3), int(m * 2 // 3)
-    advection_term.at[kn : 2 * kn, :].set(0.0)
-    advection_term.at[:, km:].set(0.0)
+    nx, rfft_ny = advection_term.shape[0], advection_term.shape[1]
+    if rfft_ny < 2:
+        raise ValueError("The 2/3 dealiasing rule requires at least two rFFT modes")
 
-    return advection_term
+    # irfftn infers an even real-space length when no explicit shape is given,
+    # which is also what the Kolmogorov solver uses.
+    ny = 2 * (rfft_ny - 1)
+    kx = jnp.fft.fftfreq(nx) * nx
+    ky = jnp.fft.rfftfreq(ny) * ny
+    mask = (jnp.abs(kx) <= nx // 3)[:, None] & (jnp.abs(ky) <= ny // 3)[None, :]
+    return jnp.where(mask, advection_term, jnp.zeros((), dtype=advection_term.dtype))
 
 
 def compute_energy_mode(uhat, vhat, kx, ky, n, m):

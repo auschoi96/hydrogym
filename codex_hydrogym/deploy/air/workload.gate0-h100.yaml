@@ -1,0 +1,59 @@
+experiment_name: ensemble_replication_h100
+mlflow_run_name: re100_ten_seed_replication_primary
+mlflow_experiment_directory: /Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_replication
+
+environment:
+  version: '5'
+  dependencies:
+    - jax[cuda12]==0.7.2
+    - jaxlib==0.7.2
+    - chex==0.1.92
+    - flax==0.12.0
+    - gymnasium==1.3.0
+    - gymnax==0.0.9
+    - huggingface-hub==1.27.0
+    - matplotlib==3.11.1
+    - mlflow==3.11.1
+    - navix==0.11.0
+    - numpy==2.5.2
+    - omegaconf==2.3.1
+    - scipy==1.18.0
+    - toml==0.10.2
+    - tree-math==0.2.1
+
+code_source:
+  type: snapshot
+  snapshot:
+    root_path: ../..
+    include_paths:
+      - deploy/air/gate0_replication_entrypoint.py
+      - evidence/ensemble_replication/269507101a52-a5ab894e5ff4/platform_transition.json
+      - evidence/ensemble_replication/269507101a52-a5ab894e5ff4/execution_backend_amendment.json
+      - notebooks/artifacts/hydrogym-1.0.0-py3-none-any.whl
+
+compute:
+  num_accelerators: 1
+  accelerator_type: GPU_1xH100
+
+env_variables:
+  CODEX_HYDROGYM_ACTION: run
+  CODEX_HYDROGYM_OUTPUT_DIR: /Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_replication/evidence/269507101a52-a5ab894e5ff4/databricks-primary-20260825
+  JAX_ENABLE_X64: "1"
+  JAX_PLATFORMS: cuda
+  PYTHONUNBUFFERED: "1"
+  XLA_PYTHON_CLIENT_PREALLOCATE: "false"
+
+parameters:
+  claim_role: primary_decision_bearing_execution
+  expected_trajectory_count: 120
+  implementation_digest: a5ab894e5ff4d3b669da274771f247e58f06aab992873fc9fe76dfdcf8622d8c
+  precision: float64
+  study_fingerprint: 269507101a5206fccab3c90504f7a46009f28381070a0d97875a06429fb19b62
+
+timeout_minutes: 720
+max_retries: 0
+
+command: |
+  cd "$CODE_SOURCE_PATH"
+  python -m pip install --disable-pip-version-check --no-deps notebooks/artifacts/hydrogym-1.0.0-py3-none-any.whl
+  python deploy/air/gate0_replication_entrypoint.py

@@ -1,0 +1,48 @@
+# Validation probe only. Databricks AIR currently accepts GPU accelerator types only,
+# so this CPU-bound frozen protocol must never be submitted by removing --dry-run.
+experiment_name: codex_hydrogym_gate0_cpu_probe
+mlflow_run_name: re100_ten_seed_replication_cpu_probe
+mlflow_experiment_directory: /Workspace/Users/austin.choi@databricks.com
+
+environment:
+  version: '5'
+  dependencies:
+    - chex==0.1.92
+    - flax==0.12.0
+    - gymnasium==1.3.0
+    - gymnax==0.0.9
+    - huggingface-hub==1.27.0
+    - jax==0.7.2
+    - jaxlib==0.7.2
+    - matplotlib==3.11.1
+    - navix==0.11.0
+    - numpy==2.5.2
+    - omegaconf==2.3.1
+    - scipy==1.18.0
+    - toml==0.10.2
+    - tree-math==0.2.1
+
+code_source:
+  type: snapshot
+  snapshot:
+    root_path: ../../notebooks
+
+# Deliberately unsupported: the dry run records whether AIR has gained a CPU type.
+compute:
+  num_accelerators: 1
+  accelerator_type: CPU
+
+env_variables:
+  JAX_ENABLE_X64: "1"
+  JAX_PLATFORMS: cpu
+  XLA_PYTHON_CLIENT_PREALLOCATE: "false"
+
+timeout_minutes: 720
+max_retries: 0
+
+command: |
+  cd "$CODE_SOURCE_PATH"
+  python -m pip install --no-deps artifacts/hydrogym-1.0.0-py3-none-any.whl
+  python -m codex_hydrogym.gate0.ensemble_replication \
+    --stage run \
+    --output-dir /Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_replication/evidence/269507101a52-a5ab894e5ff4/databricks-primary-20260825

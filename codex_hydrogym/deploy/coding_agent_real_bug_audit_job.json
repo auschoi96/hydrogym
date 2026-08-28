@@ -1,0 +1,40 @@
+{
+  "name": "codex_hydrogym bounded coding-agent repair audit",
+  "description": "Independent zero-model Databricks audit of both platform attempts, native MLflow traces, deterministic metrics, result artifact, and managed dataset for the bounded coding-agent repair pilot.",
+  "max_concurrent_runs": 1,
+  "queue": {
+    "enabled": true
+  },
+  "tags": {
+    "project": "codex_hydrogym",
+    "workflow": "coding_agent_real_bug_independent_audit_v1",
+    "claim_role": "zero_model_independent_lineage_audit",
+    "compute_role": "databricks_serverless_read_only_audit"
+  },
+  "tasks": [
+    {
+      "task_key": "audit",
+      "description": "Recompute both attempt selections and validate the successful deterministic evaluation without model calls.",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_agent_proof/coding_agent_real_bug_audit",
+        "source": "WORKSPACE"
+      },
+      "environment_key": "audit_env",
+      "max_retries": 0,
+      "retry_on_timeout": false,
+      "timeout_seconds": 1800
+    }
+  ],
+  "environments": [
+    {
+      "environment_key": "audit_env",
+      "spec": {
+        "client": "4",
+        "dependencies": [
+          "mlflow[databricks]>=3.11.1,<4",
+          "databricks-sdk>=0.75,<1"
+        ]
+      }
+    }
+  ]
+}

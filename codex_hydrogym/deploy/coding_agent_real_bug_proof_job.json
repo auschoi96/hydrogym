@@ -1,0 +1,57 @@
+{
+  "name": "codex_hydrogym bounded coding-agent repair pilot",
+  "description": "Databricks-only AI Runtime pilot: a read-only coding-model proxy selects bounded repairs for 12 frozen historical project defects, with deterministic hidden regression oracles and an independent Claude review arm. Zero CFD, PPO, reward execution, GEPA, or MemAlign.",
+  "max_concurrent_runs": 1,
+  "queue": {
+    "enabled": true
+  },
+  "tags": {
+    "project": "codex_hydrogym",
+    "workflow": "coding_agent_real_bug_pilot_v1",
+    "claim_role": "bounded_project_specific_coding_repair_pilot",
+    "compute_role": "databricks_serverless_ai_runtime_remote_model_orchestration"
+  },
+  "parameters": [
+    {
+      "name": "stage",
+      "default": "review"
+    }
+  ],
+  "tasks": [
+    {
+      "task_key": "bounded_code_repair",
+      "description": "Review the frozen protocol or execute 12 direct repairs, independent reviews, same-model revisions, deterministic scoring, and trace-native dataset publication.",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_agent_proof/coding_agent_real_bug_proof",
+        "source": "WORKSPACE",
+        "base_parameters": {
+          "stage": "{{job.parameters.stage}}",
+          "experiment_id": "103455306564903",
+          "dataset_name": "austin_choi_omni_agent_catalog.codex_hydrogym.coding_agent_real_bug_pilot_v1",
+          "coding_model": "system.ai.gpt-5-6-sol",
+          "coding_reported_model": "gpt-5.6-sol",
+          "review_model": "system.ai.claude-opus-5",
+          "review_reported_model": "us.anthropic.claude-opus-5"
+        }
+      },
+      "environment_key": "agent_eval_env",
+      "max_retries": 0,
+      "retry_on_timeout": false,
+      "timeout_seconds": 7200
+    }
+  ],
+  "environments": [
+    {
+      "environment_key": "agent_eval_env",
+      "spec": {
+        "client": "4",
+        "dependencies": [
+          "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_agent_proof/artifacts/hydrogym-1.0.0-py3-none-any.whl",
+          "mlflow[databricks]>=3.11.1,<4",
+          "openai>=1.68,<3",
+          "databricks-sdk>=0.75,<1"
+        ]
+      }
+    }
+  ]
+}

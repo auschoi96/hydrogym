@@ -1,0 +1,678 @@
+{
+  "artifact_digest": "4a71309d5362914856aaceb6009117cba1b01059f9266d95f83d44dfc1041eaf",
+  "lock": {
+    "development_case_ids": [
+      "development_p00_s00_7",
+      "development_p01_s00_7",
+      "development_p02_s00_7",
+      "development_p03_s00_7"
+    ],
+    "development_feedback_rms_l2": 0.3313719131690823,
+    "development_fixed_rms_l2": 0.25,
+    "feedback_gain": 2.0,
+    "fixed_action": [
+      0.1767766952966369,
+      0.17677669529663687,
+      0.0,
+      0.0
+    ],
+    "protocol_fingerprint": "2729e365a5712b824d4d1a2257ade19519aa454509a221790ddcabf2021b32a9",
+    "search_scores": [
+      {
+        "action": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 0,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            1.8639445868660003
+          ],
+          [
+            "development_p01_s00_7",
+            1.81457052265374
+          ],
+          [
+            "development_p02_s00_7",
+            1.8404675669579915
+          ],
+          [
+            "development_p03_s00_7",
+            1.7311460494874302
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 1.8125321814912905,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.0
+      },
+      {
+        "action": [
+          0.25,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 1,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            2.500854219923389
+          ],
+          [
+            "development_p01_s00_7",
+            1.8954727784070529
+          ],
+          [
+            "development_p02_s00_7",
+            1.3258532439475101
+          ],
+          [
+            "development_p03_s00_7",
+            1.971449777563977
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 1.9234075049604824,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.25
+      },
+      {
+        "action": [
+          0.1767766952966369,
+          0.17677669529663687,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 2,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            2.2017307292126667
+          ],
+          [
+            "development_p01_s00_7",
+            2.353019022479085
+          ],
+          [
+            "development_p02_s00_7",
+            1.4289977316383757
+          ],
+          [
+            "development_p03_s00_7",
+            1.4723314513194274
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 1.8640197336623887,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.25
+      },
+      {
+        "action": [
+          1.5308084989341915e-17,
+          0.25,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 3,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            2.051012838631964
+          ],
+          [
+            "development_p01_s00_7",
+            2.5093437311539977
+          ],
+          [
+            "development_p02_s00_7",
+            1.913245014904239
+          ],
+          [
+            "development_p03_s00_7",
+            1.267380036514717
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 1.9352454053012293,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.25
+      },
+      {
+        "action": [
+          -0.17677669529663687,
+          0.1767766952966369,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 4,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            1.4634024590385917
+          ],
+          [
+            "development_p01_s00_7",
+            2.4628807115344493
+          ],
+          [
+            "development_p02_s00_7",
+            2.596800382294962
+          ],
+          [
+            "development_p03_s00_7",
+            1.4218214870247363
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 1.9862262599731848,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.25
+      },
+      {
+        "action": [
+          -0.25,
+          3.061616997868383e-17,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 5,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            1.2535583576217113
+          ],
+          [
+            "development_p01_s00_7",
+            1.96871804361416
+          ],
+          [
+            "development_p02_s00_7",
+            2.485840446757298
+          ],
+          [
+            "development_p03_s00_7",
+            2.0273808989139726
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 1.9338744367267855,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.25
+      },
+      {
+        "action": [
+          -0.17677669529663692,
+          -0.17677669529663687,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 6,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            1.4176620221230882
+          ],
+          [
+            "development_p01_s00_7",
+            1.4957861871188824
+          ],
+          [
+            "development_p02_s00_7",
+            2.1386993348187864
+          ],
+          [
+            "development_p03_s00_7",
+            2.6035739481801183
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 1.9139303730602188,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.25
+      },
+      {
+        "action": [
+          -4.592425496802574e-17,
+          -0.25,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 7,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            2.0335242013713053
+          ],
+          [
+            "development_p01_s00_7",
+            1.168365353744529
+          ],
+          [
+            "development_p02_s00_7",
+            1.9868065847081988
+          ],
+          [
+            "development_p03_s00_7",
+            2.4269614996057722
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 1.9039144098574514,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.25
+      },
+      {
+        "action": [
+          0.17677669529663684,
+          -0.17677669529663692,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 8,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            2.3237823994244775
+          ],
+          [
+            "development_p01_s00_7",
+            1.470842559385379
+          ],
+          [
+            "development_p02_s00_7",
+            1.4745373094867984
+          ],
+          [
+            "development_p03_s00_7",
+            2.3991000445510284
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 1.9170655782119208,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.25
+      },
+      {
+        "action": [
+          0.5,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 9,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            3.1200573599904398
+          ],
+          [
+            "development_p01_s00_7",
+            2.1023702198104965
+          ],
+          [
+            "development_p02_s00_7",
+            0.7409107265952813
+          ],
+          [
+            "development_p03_s00_7",
+            2.1638742304470737
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 2.031803134210823,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.5
+      },
+      {
+        "action": [
+          0.3535533905932738,
+          0.35355339059327373,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 10,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            2.929645373204923
+          ],
+          [
+            "development_p01_s00_7",
+            2.8202569579581818
+          ],
+          [
+            "development_p02_s00_7",
+            1.2072184591021402
+          ],
+          [
+            "development_p03_s00_7",
+            1.1944417928428037
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 2.0378906457770123,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.5
+      },
+      {
+        "action": [
+          3.061616997868383e-17,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 11,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            2.082893697204441
+          ],
+          [
+            "development_p01_s00_7",
+            3.18546095496019
+          ],
+          [
+            "development_p02_s00_7",
+            2.3381712914169857
+          ],
+          [
+            "development_p03_s00_7",
+            0.7877735387854247
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 2.09857487059176,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.5
+      },
+      {
+        "action": [
+          -0.35355339059327373,
+          0.3535533905932738,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 12,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            1.292943666068737
+          ],
+          [
+            "development_p01_s00_7",
+            3.0020815195871102
+          ],
+          [
+            "development_p02_s00_7",
+            3.07246055821173
+          ],
+          [
+            "development_p03_s00_7",
+            1.238640709606126
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 2.1515316133684257,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.5
+      },
+      {
+        "action": [
+          -0.5,
+          6.123233995736766e-17,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 13,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            0.7208152265507394
+          ],
+          [
+            "development_p01_s00_7",
+            2.0385014028339232
+          ],
+          [
+            "development_p02_s00_7",
+            3.11297604558406
+          ],
+          [
+            "development_p03_s00_7",
+            2.1431881408992215
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 2.003870203966986,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.5
+      },
+      {
+        "action": [
+          -0.35355339059327384,
+          -0.35355339059327373,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 14,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            1.3270689743926376
+          ],
+          [
+            "development_p01_s00_7",
+            1.2383182799158399
+          ],
+          [
+            "development_p02_s00_7",
+            3.0781076286784246
+          ],
+          [
+            "development_p03_s00_7",
+            3.133017991706077
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 2.194128218673245,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.5
+      },
+      {
+        "action": [
+          -9.184850993605148e-17,
+          -0.5,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 15,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            2.2121883394165707
+          ],
+          [
+            "development_p01_s00_7",
+            0.8280349649383726
+          ],
+          [
+            "development_p02_s00_7",
+            1.9931868341849313
+          ],
+          [
+            "development_p03_s00_7",
+            3.4159015403902675
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 2.1123279197325355,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.5
+      },
+      {
+        "action": [
+          0.3535533905932737,
+          -0.35355339059327384,
+          0.0,
+          0.0
+        ],
+        "candidate_index": 16,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            3.0705092821583424
+          ],
+          [
+            "development_p01_s00_7",
+            1.1742810133882278
+          ],
+          [
+            "development_p02_s00_7",
+            1.1217439289415743
+          ],
+          [
+            "development_p03_s00_7",
+            3.285802918878815
+          ]
+        ],
+        "controller_kind": "development_fixed",
+        "feedback_gain": null,
+        "mean_tke": 2.16308428584174,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.5
+      },
+      {
+        "action": null,
+        "candidate_index": 0,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            1.726283093225687
+          ],
+          [
+            "development_p01_s00_7",
+            1.7293177163553124
+          ],
+          [
+            "development_p02_s00_7",
+            1.6545510949520663
+          ],
+          [
+            "development_p03_s00_7",
+            1.69161657386171
+          ]
+        ],
+        "controller_kind": "development_feedback",
+        "feedback_gain": 0.25,
+        "mean_tke": 1.7004421195986938,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.04486283842844663
+      },
+      {
+        "action": null,
+        "candidate_index": 1,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            1.6862046410782525
+          ],
+          [
+            "development_p01_s00_7",
+            1.7111593122051751
+          ],
+          [
+            "development_p02_s00_7",
+            1.6204738003763195
+          ],
+          [
+            "development_p03_s00_7",
+            1.7046749356887725
+          ]
+        ],
+        "controller_kind": "development_feedback",
+        "feedback_gain": 0.5,
+        "mean_tke": 1.68062817233713,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.10725781087482902
+      },
+      {
+        "action": null,
+        "candidate_index": 2,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            1.4033498828450977
+          ],
+          [
+            "development_p01_s00_7",
+            1.4255474901774168
+          ],
+          [
+            "development_p02_s00_7",
+            1.427752933920747
+          ],
+          [
+            "development_p03_s00_7",
+            1.469942463136598
+          ]
+        ],
+        "controller_kind": "development_feedback",
+        "feedback_gain": 1.0,
+        "mean_tke": 1.431648192519965,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.17864630594225217
+      },
+      {
+        "action": null,
+        "candidate_index": 3,
+        "case_mean_tke": [
+          [
+            "development_p00_s00_7",
+            1.1189169582076508
+          ],
+          [
+            "development_p01_s00_7",
+            1.1650367518956153
+          ],
+          [
+            "development_p02_s00_7",
+            1.1303438560640213
+          ],
+          [
+            "development_p03_s00_7",
+            1.176037430812003
+          ]
+        ],
+        "controller_kind": "development_feedback",
+        "feedback_gain": 2.0,
+        "mean_tke": 1.1475837492448226,
+        "numerical_valid": true,
+        "rms_l2_effort": 0.3313719131690823
+      }
+    ],
+    "selection_rule": "feedback gain minimizes development TKE; fixed constant first minimizes absolute RMS-L2 effort mismatch to that feedback arm, then development TKE, then stable grid order"
+  },
+  "lock_digest": "90c324567e20ab28cec778ad5d5dd53734619f2e04496046d9208e9c229e24df",
+  "protocol_fingerprint": "2729e365a5712b824d4d1a2257ade19519aa454509a221790ddcabf2021b32a9"
+}

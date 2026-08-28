@@ -1,3 +1,4 @@
+import math
 from typing import Callable, Dict, Iterable, NamedTuple, Optional, Tuple
 
 import chex
@@ -11,8 +12,15 @@ from jax import lax
 from hydrogym.core import CallbackBase, PDEBase, TransientSolver
 from hydrogym.jax.env_core import EnvParams, JAXFlowEnvBase
 from hydrogym.jax.equation import IMEXEquation
+from hydrogym.jax.kolmogorov_contract import (
+    FORCED_MODE_QUADRATURE_BASIS_VERSION,
+    LEGACY_SPEED_GRID_OBSERVATION_MODE,
+    OBSERVATION_CONTRACT_VERSIONS,
+    SIGNED_FORCED_MODE_OBSERVATION_MODE,
+)
 from hydrogym.jax.solvers.base import RungeKuttaCrankNicolson
 from hydrogym.jax.utils.utils import compute_real_velocity_point, compute_tke, compute_velocity_fft, dealiasing
+
 
 #######################################################################################
 #                                                                                     #
@@ -28,6 +36,7 @@ class FlowConfig(PDEBase):
     DEFAULT_DOMAIN_X = (0, 2 * jnp.pi)
     DEFAULT_DOMAIN_Y = (0, 2 * jnp.pi)
     DEFAULT_OBS_SIZE = 8  # This correlates to a total observation size of 8x8 = 64.
+    DEFAULT_FORCING_PHASE = 0.0
 
     def __init__(self, **config):
         self.k = config.get("k", self.DEFAULT_WAVENUMBER)
@@ -36,6 +45,9 @@ class FlowConfig(PDEBase):
         self.domain_x = config.get("domain_x", self.DEFAULT_DOMAIN_X)
         self.domain_y = config.get("domain_y", self.DEFAULT_DOMAIN_Y)
         self.obs_size = config.get("obs_size", self.DEFAULT_OBS_SIZE)
+        self.forcing_phase = float(config.get("forcing_phase", self.DEFAULT_FORCING_PHASE))
+        if not math.isfinite(self.forcing_phase):
+            raise ValueError("forcing_phase must be finite")
         self.control_function = (
             jnp.zeros_like(self.load_mesh("default")[0]),
             jnp.zeros_like(self.load_mesh("default")[1]),
@@ -50,10 +62,12 @@ class FlowConfig(PDEBase):
         Returns:
             jax meshgrid
         """
-        x0, xn, nx = self.domain_x[0], self.domain_x[1], self.grid_size[1]
-        y0, yn, ny = self.domain_y[0], self.domain_y[1], self.grid_size[0]
-        x = jnp.linspace(x0, xn, nx)
-        y = jnp.linspace(y0, yn, ny)
+        x0, xn, nx = self.domain_x[0], self.domain_x[1], self.grid_size[0]
+        y0, yn, ny = self.domain_y[0], self.domain_y[1], self.grid_size[1]
+        # A periodic pseudospectral grid contains the lower endpoint but not a
+        # duplicate copy of the upper endpoint.
+        x = jnp.linspace(x0, xn, nx, endpoint=False)
+        y = jnp.linspace(y0, yn, ny, endpoint=False)
         return jnp.meshgrid(x, y, indexing="ij")
 
     def _calculate_velocity_point(self, state, k1, k2):
@@ -94,11 +108,37 @@ class FlowConfig(PDEBase):
         """
         N = self.grid_size[0]
         M = self.grid_size[1]
-        dx = self.domain_x[1] / N
-        dy = self.domain_y[1] / M
+        dx = (self.domain_x[1] - self.domain_x[0]) / N
+        dy = (self.domain_y[1] - self.domain_y[0]) / M
         kx = jnp.fft.fftfreq(N, dx)
         ky = jnp.fft.rfftfreq(M, dy)
         return jnp.meshgrid(kx, ky, indexing="ij")
+
+    def initial_vorticity(
+        self,
+        key: Optional[chex.PRNGKey] = None,
+        perturbation_amplitude: float = 0.0,
+    ) -> jnp.ndarray:
+        """Build a reproducible divergence-free initial vorticity field.
+
+        ``perturbation_amplitude`` is the amplitude of an additional
+        streamfunction mode. A zero value preserves the deterministic base
+        state; a nonzero value uses ``key`` to randomize that mode's phases.
+        """
+        x, y = self.load_mesh("default")
+        base_vorticity = 2.0 * jnp.sin(x) * jnp.cos(y)
+
+        phases = (
+            jnp.zeros((2,)) if key is None else jax.random.uniform(key, shape=(2,), minval=0.0, maxval=2.0 * jnp.pi)
+        )
+        mode_x, mode_y = 2, 3
+        perturbation_vorticity = (
+            (mode_x**2 + mode_y**2)
+            * perturbation_amplitude
+            * jnp.sin(mode_x * x + phases[0])
+            * jnp.cos(mode_y * y + phases[1])
+        )
+        return jnp.fft.rfftn(base_vorticity + perturbation_vorticity)
 
     def initialize_state(self):
         """Generate a divergence free velocity field to initialize the state
@@ -109,23 +149,7 @@ class FlowConfig(PDEBase):
         Returns:
             fft vorticity field
         """
-        X, Y = self.load_mesh("default")
-
-        # Gradients of φ(x,y) #
-        def dstream_func_dx(x, y):
-            return jnp.cos(x)
-
-        def dstream_func_dy(x, y):
-            return -jnp.sin(y)
-
-        dudy = jax.grad(dstream_func_dy, argnums=1)
-        dvdx = jax.grad(dstream_func_dx, argnums=0)
-        du_dy = jnp.vectorize(dudy)(X, Y)
-        dv_dx = jnp.vectorize(dvdx)(X, Y)
-        vorticity = dv_dx - du_dy
-        vorticity_0 = jnp.fft.rfftn(vorticity)
-
-        self.vorticity = vorticity_0
+        self.vorticity = self.initial_vorticity()
         return self.vorticity
 
     def set_BCs(self):
@@ -143,7 +167,7 @@ class FlowConfig(PDEBase):
         Returns:
             tuple: forcing function in (x,y)
         """
-        return (jnp.sin(k * y), jnp.zeros_like(y))
+        return (jnp.sin(k * y + self.forcing_phase), jnp.zeros_like(y))
 
     def evaluate_objective(self):
         """Return a copy of the flow state"""
@@ -269,7 +293,10 @@ class PseudoSpectralNavierStokes2D(IMEXEquation):
         cfx_hat = jnp.fft.rfftn(cfx)
         cfy_hat = jnp.fft.rfftn(cfy)
 
-        return self.kx * cfy_hat - self.ky * cfx_hat
+        # ``fftfreq`` is measured in cycles per unit length, so the Fourier
+        # symbol for a physical derivative is 2*pi*i*k.  The vorticity source
+        # is the z-component of curl(control): d(cfy)/dx - d(cfx)/dy.
+        return 2j * jnp.pi * (self.kx * cfy_hat - self.ky * cfx_hat)
 
     def forcing_term(self):
         """Computes the user-specified forcing term of the vorticity equation
@@ -305,6 +332,7 @@ class KolmogorovFlowState(environment.EnvState):
     omega_hat: jnp.ndarray
     time: jnp.ndarray
     terminal: jnp.ndarray
+    last_action: jnp.ndarray
 
 
 @struct.dataclass
@@ -314,19 +342,25 @@ class KolmogorovFlowParams(EnvParams):
     min_obs: float = -jnp.inf
     max_obs: float = jnp.inf
 
-    dt: float = 1e-3
-    action_time: float = 10.0
-    save_time: float = 1
+    # These values determine lax.scan lengths and are therefore static PyTree
+    # metadata. Changing one intentionally produces a new JAX compilation.
+    dt: float = struct.field(pytree_node=False, default=1e-3)
+    action_time: float = struct.field(pytree_node=False, default=10.0)
+    save_time: float = struct.field(pytree_node=False, default=1.0)
 
+    # Channels 0 and 1 are the sine/cosine quadrature pair at the forced
+    # wavenumber. Keeping channels 2 and 3 at their legacy modes preserves
+    # three of the four original action meanings while retaining a 4-D API.
     k1: int = 4
-    k2: int = 5
+    k2: int = 4
     k3: int = 6
     k4: int = 7
 
-    action_dim: int = 4
-    obs_dim: int = 64
+    action_dim: int = struct.field(pytree_node=False, default=4)
+    obs_dim: int = struct.field(pytree_node=False, default=64)
     max_episode_steps: int = 1000
-    reward_alpha: float = 0.0
+    reward_alpha: float = 1.0
+    initial_perturbation_amplitude: float = 0.0
 
     include_grad: bool = True
 
@@ -339,13 +373,20 @@ class KolmogorovFlow(JAXFlowEnvBase):
     ):
         super().__init__(env_config)
 
+        self.observation_mode = self.env_config.get(
+            "observation_mode",
+            LEGACY_SPEED_GRID_OBSERVATION_MODE,
+        )
+        if self.observation_mode not in OBSERVATION_CONTRACT_VERSIONS:
+            raise ValueError(
+                f"observation_mode must be one of {sorted(OBSERVATION_CONTRACT_VERSIONS)}"
+            )
+
         self.flow = FlowConfig(**(flow_config or {}))
 
         self.n, self.m = self.flow.grid_size
         self.x, self.y = self.flow.load_mesh("")
         self.kx, self.ky = self.flow.load_fft_mesh()
-
-        self._dt_override = (env_config or {}).get("dt", None)
 
         default = self.default_params
         self.equation = PseudoSpectralNavierStokes2D(self.flow)
@@ -362,10 +403,23 @@ class KolmogorovFlow(JAXFlowEnvBase):
 
     @property
     def default_params(self) -> KolmogorovFlowParams:
-        dt_override = getattr(self, "_dt_override", None)
-        kwargs = dict(action_dim=4, obs_dim=self.flow.obs_size**2)
-        if dt_override is not None:
-            kwargs["dt"] = float(dt_override)
+        obs_dim = 2 if self.observation_mode == SIGNED_FORCED_MODE_OBSERVATION_MODE else self.flow.obs_size**2
+        kwargs = dict(
+            action_dim=4,
+            obs_dim=obs_dim,
+            k1=self.flow.k,
+            k2=self.flow.k,
+        )
+        for name in (
+            "dt",
+            "action_time",
+            "save_time",
+            "reward_alpha",
+            "initial_perturbation_amplitude",
+            "max_episode_steps",
+        ):
+            if name in self.env_config:
+                kwargs[name] = self.env_config[name]
         return KolmogorovFlowParams(**kwargs)
 
     def action_space(self, params: Optional[KolmogorovFlowParams] = None):
@@ -383,11 +437,41 @@ class KolmogorovFlow(JAXFlowEnvBase):
             shape=(params.obs_dim,),
         )
 
+    def action_basis_metadata(self, params: Optional[KolmogorovFlowParams] = None) -> Dict[str, object]:
+        """Return the versioned velocity-forcing basis for each action index."""
+        params = params or self.default_params
+        return {
+            "version": FORCED_MODE_QUADRATURE_BASIS_VERSION,
+            "channels": (
+                {"index": 0, "component": "x", "function": "sin", "wavenumber": int(params.k1)},
+                {"index": 1, "component": "x", "function": "cos", "wavenumber": int(params.k2)},
+                {"index": 2, "component": "x", "function": "sin", "wavenumber": int(params.k3)},
+                {"index": 3, "component": "x", "function": "sin", "wavenumber": int(params.k4)},
+            ),
+        }
+
+    def observation_metadata(self) -> Dict[str, object]:
+        """Return the exact observation contract used by :meth:`get_obs`."""
+        metadata: Dict[str, object] = {
+            "mode": self.observation_mode,
+            "version": OBSERVATION_CONTRACT_VERSIONS[self.observation_mode],
+        }
+        if self.observation_mode == SIGNED_FORCED_MODE_OBSERVATION_MODE:
+            metadata.update(
+                {
+                    "components": ("streamwise_velocity_sine", "streamwise_velocity_cosine"),
+                    "wavenumber": int(self.flow.k),
+                    "normalization": "two_times_periodic_domain_mean",
+                    "trajectory_reduction": "arithmetic_mean",
+                }
+            )
+        return metadata
+
     def _control_field(self, action: jnp.ndarray, params: KolmogorovFlowParams) -> Tuple[jnp.ndarray, jnp.ndarray]:
         a1, a2, a3, a4 = action
         forcing_x = (
             a1 * jnp.sin(params.k1 * self.y)
-            + a2 * jnp.sin(params.k2 * self.y)
+            + a2 * jnp.cos(params.k2 * self.y)
             + a3 * jnp.sin(params.k3 * self.y)
             + a4 * jnp.sin(params.k4 * self.y)
         )
@@ -404,10 +488,9 @@ class KolmogorovFlow(JAXFlowEnvBase):
         Returns:
             final_state_hat, trajectory
         """
-        default = self.default_params
-        dt = float(default.dt)
-        save_n = int(default.save_time)
-        action_time = float(default.action_time)
+        dt = float(params.dt)
+        save_n = float(params.save_time)
+        action_time = float(params.action_time)
 
         final_state, trajectory = self.integrator.solve(
             dt=dt,
@@ -445,12 +528,35 @@ class KolmogorovFlow(JAXFlowEnvBase):
 
         return jnp.mean(jax.vmap(obs_one_state)(trajectory), axis=0)
 
+    def _trajectory_signed_forced_mode_obs(self, trajectory: jnp.ndarray) -> jnp.ndarray:
+        """Project streamwise velocity onto the signed forced-mode quadrature pair.
+
+        The factor of two makes the coefficients amplitude preserving on the
+        periodic grid: ``u = A sin(k y) + B cos(k y)`` maps to ``[A, B]``.
+        """
+        sine_basis = jnp.sin(self.flow.k * self.y)
+        cosine_basis = jnp.cos(self.flow.k * self.y)
+
+        def obs_one_state(omega_hat):
+            uhat, _ = compute_velocity_fft(omega_hat, self.kx, self.ky)
+            streamwise_velocity = jnp.fft.irfftn(uhat, s=self.flow.grid_size)
+            return jnp.stack(
+                (
+                    2.0 * jnp.mean(streamwise_velocity * sine_basis),
+                    2.0 * jnp.mean(streamwise_velocity * cosine_basis),
+                )
+            )
+
+        return jnp.mean(jax.vmap(obs_one_state)(trajectory), axis=0)
+
     def get_obs(
         self,
         state: KolmogorovFlowState,
         params: KolmogorovFlowParams,
         key: Optional[chex.PRNGKey] = None,
     ) -> chex.Array:
+        if self.observation_mode == SIGNED_FORCED_MODE_OBSERVATION_MODE:
+            return self._trajectory_signed_forced_mode_obs(state.trajectory)
         return self._trajectory_mean_obs(state.trajectory)
 
     def _avg_tke(self, trajectory: jnp.ndarray) -> jnp.ndarray:
@@ -465,16 +571,30 @@ class KolmogorovFlow(JAXFlowEnvBase):
         trajectory: jnp.ndarray,
         params: KolmogorovFlowParams,
     ) -> jnp.ndarray:
+        terms = self._reward_terms(action, trajectory, params)
+        return terms["tke"] + terms["action_l1"]
+
+    def _reward_terms(
+        self,
+        action: jnp.ndarray,
+        trajectory: jnp.ndarray,
+        params: KolmogorovFlowParams,
+    ) -> Dict[str, jnp.ndarray]:
         energy = self._avg_tke(trajectory)
-        action_penalty = jnp.sum(jnp.abs(action))
-        return -(params.reward_alpha * energy + action_penalty)
+        return {
+            "tke": -(params.reward_alpha * energy),
+            "action_l1": -jnp.sum(jnp.abs(action)),
+        }
 
     def reset_env(
         self,
         key: chex.PRNGKey,
         params: KolmogorovFlowParams,
     ):
-        omega0 = self.flow.initialize_state()
+        omega0 = self.flow.initial_vorticity(
+            key,
+            perturbation_amplitude=params.initial_perturbation_amplitude,
+        )
 
         final_state, trajectory = self._rollout(
             omega_hat0=omega0,
@@ -487,6 +607,7 @@ class KolmogorovFlow(JAXFlowEnvBase):
             omega_hat=final_state,
             time=jnp.array(0),
             terminal=jnp.array(False),
+            last_action=jnp.zeros((params.action_dim,), dtype=jnp.real(final_state).dtype),
         )
         obs = self.get_obs(state, params, key)
         return obs, state
@@ -512,14 +633,22 @@ class KolmogorovFlow(JAXFlowEnvBase):
             omega_hat=final_state,
             time=state.time + 1,
             terminal=jnp.array(False),
+            last_action=action,
         )
 
         obs = self.get_obs(next_state, params, key)
-        reward = self._reward(action, trajectory, params)
+        reward_terms = self._reward_terms(action, trajectory, params)
+        reward = reward_terms["tke"] + reward_terms["action_l1"]
         done = self.is_terminal(next_state, params)
 
         info = {
             "discount": self.discount(next_state, params),
             "mean_tke": self._avg_tke(trajectory),
+            "control_l1": jnp.sum(jnp.abs(action)),
+            "control_l2": jnp.sum(jnp.square(action)),
+            "action_delta_l2": jnp.sum(jnp.square(action - state.last_action)),
+            "reward_tke": reward_terms["tke"],
+            "reward_action_l1": reward_terms["action_l1"],
+            "reward_total": reward,
         }
         return obs, next_state, reward, done, info

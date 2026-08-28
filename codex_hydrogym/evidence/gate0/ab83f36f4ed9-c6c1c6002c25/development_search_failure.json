@@ -1,0 +1,1587 @@
+{
+  "artifact_digest": "af744e0bae5db096e8b5896fe3bacc41315ec412b50fdab102af6c2f58c88e1b",
+  "failure_digest": "c0be6dd593c948fd57437996f9f81274ce11c7e1736338d3c00e3c7346c80140",
+  "failures": [
+    {
+      "candidate_index": 0,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 0,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 0,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 0,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 1,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 1,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 1,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 1,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 2,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 2,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 2,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 2,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 3,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 3,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 3,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 3,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 4,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 4,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 4,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 4,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 5,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 5,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 5,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 5,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 6,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 6,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 6,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 6,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 7,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 7,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 7,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 7,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 8,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 8,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 8,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 8,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 9,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 9,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 9,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 9,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 10,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 10,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 10,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 10,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 11,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 11,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 11,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 11,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 12,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 12,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 12,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 12,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 13,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 13,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 13,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 13,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 14,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 14,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 14,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 14,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 15,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 15,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 15,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 15,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 16,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 16,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 16,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 16,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_fixed",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 0,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 0,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 0,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 0,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 1,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 1,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 1,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 1,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 2,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 2,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 2,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 2,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 3,
+      "case_id": "development_p00_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 3,
+      "case_id": "development_p01_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 3,
+      "case_id": "development_p02_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    },
+    {
+      "candidate_index": 3,
+      "case_id": "development_p03_s00_7",
+      "completed_case_ids": [],
+      "controller_kind": "development_feedback",
+      "error_message": null,
+      "error_type": null,
+      "failed_numerical_gates": [
+        "spectral_tail_controlled"
+      ]
+    }
+  ],
+  "protocol_fingerprint": "ab83f36f4ed9991320ac6e191bb6330d4c7fdc502430a4b65bf4c5fbbe598fd5",
+  "reason": "development_candidate_numerical_gate_failure",
+  "search_scores": [
+    {
+      "action": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 0,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          3.2287876428686473
+        ],
+        [
+          "development_p01_s00_7",
+          3.2705444930532614
+        ],
+        [
+          "development_p02_s00_7",
+          3.090704991782267
+        ],
+        [
+          "development_p03_s00_7",
+          3.229867804926048
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.2049762331575558,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.0
+    },
+    {
+      "action": [
+        0.25,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 1,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          4.17720023612902
+        ],
+        [
+          "development_p01_s00_7",
+          3.4056173228291997
+        ],
+        [
+          "development_p02_s00_7",
+          2.537032974704927
+        ],
+        [
+          "development_p03_s00_7",
+          3.387731206267328
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.376895434982619,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.25
+    },
+    {
+      "action": [
+        0.1767766952966369,
+        0.17677669529663687,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 2,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          3.999535445113604
+        ],
+        [
+          "development_p01_s00_7",
+          4.121284705660908
+        ],
+        [
+          "development_p02_s00_7",
+          2.607161602276179
+        ],
+        [
+          "development_p03_s00_7",
+          2.6143732302751292
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.335588745831455,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.25
+    },
+    {
+      "action": [
+        1.5308084989341915e-17,
+        0.25,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 3,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          3.3582604873289688
+        ],
+        [
+          "development_p01_s00_7",
+          4.237395995365815
+        ],
+        [
+          "development_p02_s00_7",
+          3.3323851509911098
+        ],
+        [
+          "development_p03_s00_7",
+          2.4592224404431726
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.3468160185322664,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.25
+    },
+    {
+      "action": [
+        -0.17677669529663687,
+        0.1767766952966369,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 4,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          2.6896965733045834
+        ],
+        [
+          "development_p01_s00_7",
+          4.126373247103521
+        ],
+        [
+          "development_p02_s00_7",
+          4.098608073939828
+        ],
+        [
+          "development_p03_s00_7",
+          2.707334022110535
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.4055029791146167,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.25
+    },
+    {
+      "action": [
+        -0.25,
+        3.061616997868383e-17,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 5,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          2.4128453065888387
+        ],
+        [
+          "development_p01_s00_7",
+          3.4146268279897596
+        ],
+        [
+          "development_p02_s00_7",
+          4.233216160979973
+        ],
+        [
+          "development_p03_s00_7",
+          3.5042486995632998
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.3912342487804676,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.25
+    },
+    {
+      "action": [
+        -0.17677669529663692,
+        -0.17677669529663687,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 6,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          2.663553293227833
+        ],
+        [
+          "development_p01_s00_7",
+          2.8113520463321
+        ],
+        [
+          "development_p02_s00_7",
+          4.061098220385488
+        ],
+        [
+          "development_p03_s00_7",
+          4.088773260143112
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.406194205022133,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.25
+    },
+    {
+      "action": [
+        -4.592425496802574e-17,
+        -0.25,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 7,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          3.144403607623067
+        ],
+        [
+          "development_p01_s00_7",
+          2.4253584579038483
+        ],
+        [
+          "development_p02_s00_7",
+          3.25386947804165
+        ],
+        [
+          "development_p03_s00_7",
+          4.3893669851803825
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.303249632187237,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.25
+    },
+    {
+      "action": [
+        0.17677669529663684,
+        -0.17677669529663692,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 8,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          3.8068970550484944
+        ],
+        [
+          "development_p01_s00_7",
+          2.66410780836802
+        ],
+        [
+          "development_p02_s00_7",
+          2.6820122834781848
+        ],
+        [
+          "development_p03_s00_7",
+          3.8216120306356514
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.2436572943825874,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.25
+    },
+    {
+      "action": [
+        0.5,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 9,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          5.081444110889759
+        ],
+        [
+          "development_p01_s00_7",
+          3.5580377800602605
+        ],
+        [
+          "development_p02_s00_7",
+          1.7102195929329058
+        ],
+        [
+          "development_p03_s00_7",
+          3.7787470407248183
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.532112131151936,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.5
+    },
+    {
+      "action": [
+        0.3535533905932738,
+        0.35355339059327373,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 10,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          4.946110475954487
+        ],
+        [
+          "development_p01_s00_7",
+          4.824772315735765
+        ],
+        [
+          "development_p02_s00_7",
+          2.363440467514036
+        ],
+        [
+          "development_p03_s00_7",
+          2.2793441923954223
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.6034168628999277,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.5
+    },
+    {
+      "action": [
+        3.061616997868383e-17,
+        0.5,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 11,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          3.6204753566252372
+        ],
+        [
+          "development_p01_s00_7",
+          5.510665553661471
+        ],
+        [
+          "development_p02_s00_7",
+          3.7430790895989294
+        ],
+        [
+          "development_p03_s00_7",
+          1.7306112377878207
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.6512078094183646,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.5
+    },
+    {
+      "action": [
+        -0.35355339059327373,
+        0.3535533905932738,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 12,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          2.2308075384802613
+        ],
+        [
+          "development_p01_s00_7",
+          4.891235474413401
+        ],
+        [
+          "development_p02_s00_7",
+          5.069576982015865
+        ],
+        [
+          "development_p03_s00_7",
+          2.3575002867823396
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.6372800704229666,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.5
+    },
+    {
+      "action": [
+        -0.5,
+        6.123233995736766e-17,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 13,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          1.626100585072528
+        ],
+        [
+          "development_p01_s00_7",
+          3.769119877800515
+        ],
+        [
+          "development_p02_s00_7",
+          5.20836139939611
+        ],
+        [
+          "development_p03_s00_7",
+          3.766648998900719
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.592557715292468,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.5
+    },
+    {
+      "action": [
+        -0.35355339059327384,
+        -0.35355339059327373,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 14,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          2.2098170829696544
+        ],
+        [
+          "development_p01_s00_7",
+          2.331145543881698
+        ],
+        [
+          "development_p02_s00_7",
+          4.7326670558200785
+        ],
+        [
+          "development_p03_s00_7",
+          4.64749635266702
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.480281508834613,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.5
+    },
+    {
+      "action": [
+        -9.184850993605148e-17,
+        -0.5,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 15,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          3.531768274302022
+        ],
+        [
+          "development_p01_s00_7",
+          1.753043537369673
+        ],
+        [
+          "development_p02_s00_7",
+          3.730658177911144
+        ],
+        [
+          "development_p03_s00_7",
+          5.405121427848159
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.6051478543577495,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.5
+    },
+    {
+      "action": [
+        0.3535533905932737,
+        -0.35355339059327384,
+        0.0,
+        0.0
+      ],
+      "candidate_index": 16,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          5.191417161811777
+        ],
+        [
+          "development_p01_s00_7",
+          2.4392149715123175
+        ],
+        [
+          "development_p02_s00_7",
+          2.3672022383556532
+        ],
+        [
+          "development_p03_s00_7",
+          4.732866455563692
+        ]
+      ],
+      "controller_kind": "development_fixed",
+      "feedback_gain": null,
+      "mean_tke": 3.6826752068108597,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.5
+    },
+    {
+      "action": null,
+      "candidate_index": 0,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          3.076733108263524
+        ],
+        [
+          "development_p01_s00_7",
+          3.158009792970952
+        ],
+        [
+          "development_p02_s00_7",
+          3.118714789377642
+        ],
+        [
+          "development_p03_s00_7",
+          3.163605414585253
+        ]
+      ],
+      "controller_kind": "development_feedback",
+      "feedback_gain": 0.25,
+      "mean_tke": 3.1292657762993428,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.037414263688879686
+    },
+    {
+      "action": null,
+      "candidate_index": 1,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          2.8121188275377755
+        ],
+        [
+          "development_p01_s00_7",
+          3.0243917477741995
+        ],
+        [
+          "development_p02_s00_7",
+          2.964596806590064
+        ],
+        [
+          "development_p03_s00_7",
+          3.038855841122693
+        ]
+      ],
+      "controller_kind": "development_feedback",
+      "feedback_gain": 0.5,
+      "mean_tke": 2.959990805756183,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.06662116037724866
+    },
+    {
+      "action": null,
+      "candidate_index": 2,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          2.7536974586643987
+        ],
+        [
+          "development_p01_s00_7",
+          2.893161713031197
+        ],
+        [
+          "development_p02_s00_7",
+          2.781813550286161
+        ],
+        [
+          "development_p03_s00_7",
+          2.7219280364222116
+        ]
+      ],
+      "controller_kind": "development_feedback",
+      "feedback_gain": 1.0,
+      "mean_tke": 2.787650189600992,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.1377562220805792
+    },
+    {
+      "action": null,
+      "candidate_index": 3,
+      "case_mean_tke": [
+        [
+          "development_p00_s00_7",
+          2.4501072266111095
+        ],
+        [
+          "development_p01_s00_7",
+          2.522547464694967
+        ],
+        [
+          "development_p02_s00_7",
+          2.4125504883347624
+        ],
+        [
+          "development_p03_s00_7",
+          2.4636652251397044
+        ]
+      ],
+      "controller_kind": "development_feedback",
+      "feedback_gain": 2.0,
+      "mean_tke": 2.4622176011951358,
+      "numerical_valid": false,
+      "rms_l2_effort": 0.2573991777752384
+    }
+  ],
+  "status": "failed"
+}

@@ -1,0 +1,64 @@
+{
+  "job_id": 683906346871429,
+  "new_settings": {
+    "tasks": [
+      {
+        "task_key": "coding_agent_ppo",
+        "description": "Run the frozen base-versus-PPO code-repair experiment and persist MLflow traces, metrics, isolated patch snapshots, and the LoRA adapter.",
+        "run_if": "ALL_SUCCESS",
+        "timeout_seconds": 0,
+        "max_retries": 0,
+        "retry_on_timeout": false,
+        "ai_runtime_task": {
+          "experiment": "codex_hydrogym",
+          "deployments": [
+            {
+              "command_path": "/Workspace/Users/austin.choi@databricks.com/.air/cli_launch/codex_hydrogym/coding_agent_ppo_real_v1_40b57ed6a94f48f5/command.sh",
+              "compute": {
+                "accelerator_type": "GPU_1xH100",
+                "accelerator_count": 1
+              }
+            }
+          ],
+          "code_source_path": "/Workspace/Users/austin.choi@databricks.com/.air/repo_snapshots/codex_hydrogym/codex_hydrogym_20260827_204215.tar.gz",
+          "mlflow_experiment_directory": "/Workspace/Shared",
+          "mlflow_run": "coding_agent_ppo_real_v1"
+        },
+        "environment_key": "coding_ppo_environment",
+        "environment_variables_key": "coding_ppo_environment_variables"
+      }
+    ],
+    "environments": [
+      {
+        "environment_key": "coding_ppo_environment",
+        "spec": {
+          "environment_version": "5",
+          "dependencies": [
+            "torch==2.5.1",
+            "transformers==4.46.3",
+            "trl==0.11.4",
+            "peft==0.13.2",
+            "accelerate==1.1.1",
+            "datasets==3.1.0",
+            "sentencepiece==0.2.0",
+            "hf-transfer==0.1.9",
+            "safetensors==0.4.5",
+            "pyyaml==6.0.3",
+            "mlflow==3.11.1"
+          ]
+        }
+      }
+    ],
+    "environment_variables": [
+      {
+        "environment_variables_key": "coding_ppo_environment_variables",
+        "variables": {
+          "CODEX_HYDROGYM_CODING_PPO_OUTPUT_DIR": "/tmp/codex_hydrogym_coding_ppo_real_v1",
+          "HF_HOME": "/tmp/codex_hydrogym_hf",
+          "TOKENIZERS_PARALLELISM": "false",
+          "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+        }
+      }
+    ]
+  }
+}

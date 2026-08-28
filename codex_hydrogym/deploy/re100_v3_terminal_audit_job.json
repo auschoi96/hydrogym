@@ -1,0 +1,41 @@
+{
+  "name": "codex_hydrogym Gate 0 v3 terminal independent audit",
+  "description": "Read-only, standard-library-only, zero-CFD independent audit of the sole Gate 0 v3 primary artifacts. Recomputes exact hashes, 360 traces, 720 windows, 2,520 numerical gates, primary causal gates, confidence intervals, and the frozen terminal decision. Does not run PPO or support coding-agent/MemAlign benefit claims.",
+  "tags": {
+    "project": "codex_hydrogym",
+    "study": "re100_gate0_v3",
+    "claim_role": "terminal_independent_audit",
+    "compute_role": "cpu_serverless_zero_cfd"
+  },
+  "max_concurrent_runs": 1,
+  "queue": {
+    "enabled": true
+  },
+  "tasks": [
+    {
+      "task_key": "re100_v3_terminal_audit",
+      "description": "Independent read-only terminal evidence audit; no simulation and no RL.",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_v3/re100_v3_terminal_audit",
+        "source": "WORKSPACE",
+        "base_parameters": {
+          "output_dir": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_v3/evidence/885ff77559da-17fd18a51e8b"
+        }
+      },
+      "environment_key": "default",
+      "timeout_seconds": 1800,
+      "max_retries": 0,
+      "retry_on_timeout": false
+    }
+  ],
+  "environments": [
+    {
+      "environment_key": "default",
+      "spec": {
+        "client": "4",
+        "dependencies": []
+      }
+    }
+  ],
+  "format": "MULTI_TASK"
+}

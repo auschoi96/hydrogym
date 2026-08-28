@@ -1,0 +1,38 @@
+bundle:
+  name: codex-hydrogym
+
+variables:
+  experiment_id:
+    description: Existing codex_hydrogym MLflow experiment ID.
+    default: '103455306564903'
+
+resources:
+  apps:
+    app:
+      name: 'codex-hydrogym'
+      description: 'codex_hydrogym evidence-gated fluid-control cockpit'
+      source_code_path: ./
+
+      config:
+        command:
+          - npm
+          - run
+          - start
+        env:
+          - name: MLFLOW_EXPERIMENT_ID
+            value_from: experiment
+      resources:
+        - name: experiment
+          description: codex_hydrogym traces, critic-quality assessments, and controller evidence
+          experiment:
+            experiment_id: ${var.experiment_id}
+            permission: CAN_EDIT
+
+      lifecycle:
+        started: true
+
+targets:
+  default:
+    default: true
+    workspace:
+      host: https://fevm-austin-choi-omni-agent.cloud.databricks.com

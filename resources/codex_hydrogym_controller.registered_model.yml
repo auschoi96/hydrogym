@@ -1,0 +1,7 @@
+resources:
+  registered_models:
+    codex_hydrogym_controller:
+      name: codex_hydrogym_ppo_controller
+      catalog_name: ${resources.schemas.codex_hydrogym_schema.catalog_name}
+      schema_name: ${resources.schemas.codex_hydrogym_schema.name}
+      comment: Physics-gated deterministic Flax/JAX PPO controller for the codex_hydrogym fluid RL demo.

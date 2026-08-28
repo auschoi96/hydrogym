@@ -1,0 +1,55 @@
+experiment_name: codex_hydrogym
+mlflow_run_name: coding_agent_ppo_real_v1
+mlflow_experiment_directory: /Workspace/Shared
+
+environment:
+  version: '5'
+  dependencies:
+    - torch==2.5.1
+    - transformers==4.46.3
+    - trl==0.11.4
+    - peft==0.13.2
+    - accelerate==1.1.1
+    - datasets==3.1.0
+    - sentencepiece==0.2.0
+    - hf-transfer==0.1.9
+    - safetensors==0.4.5
+    - pyyaml==6.0.3
+    - mlflow==3.11.1
+
+code_source:
+  type: snapshot
+  snapshot:
+    root_path: ../..
+    include_paths:
+      - __init__.py
+      - tracking.py
+      - coding_rl/__init__.py
+      - coding_rl/experiment.py
+      - agent_eval/CODING_AGENT_PPO_PROTOCOL.md
+
+compute:
+  num_accelerators: 1
+  accelerator_type: GPU_1xH100
+
+env_variables:
+  CODEX_HYDROGYM_CODING_PPO_OUTPUT_DIR: /tmp/codex_hydrogym_coding_ppo_real_v1
+  HF_HOME: /tmp/codex_hydrogym_hf
+  TOKENIZERS_PARALLELISM: 'false'
+  PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+
+parameters:
+  project_label: codex_hydrogym
+  protocol_id: codex_hydrogym.coding_agent_ppo.v1
+  coding_ppo:
+    model_id: Qwen/Qwen2.5-Coder-0.5B-Instruct
+    seed: 27
+    ppo_updates: 24
+    batch_size: 8
+    mini_batch_size: 2
+    learning_rate: 0.00001
+
+timeout_minutes: 240
+max_retries: 0
+
+command: cd "$CODE_SOURCE_PATH/.." && python -m codex_hydrogym.coding_rl.experiment

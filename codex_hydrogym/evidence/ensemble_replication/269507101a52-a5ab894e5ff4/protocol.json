@@ -1,0 +1,288 @@
+{
+  "artifact_digest": "3914aedc99979693bf693772a56eef83c3c242c6cd72dc7fda8c07583d781c87",
+  "claim_boundary": "Exploratory development-only replication-sizing evidence. The fixed ten-seed sample is analyzed separately from the completed four-seed diagnostic; results must never be pooled or appended. No held-out gate, RL, reward proposal, coding-agent comparison, MemAlign, GEPA, deployment, or fluid-improvement claim is performed. Even a positive screen only supports designing a separately preregistered full gate.",
+  "execution_plan": {
+    "arm_count": 2,
+    "condition_count": 3,
+    "development_case_count_per_condition": 20,
+    "expected_paired_window_block_count": 120,
+    "expected_trajectory_count": 120,
+    "fixed_seed_cluster_count": 10,
+    "interim_decision_looks_allowed": false,
+    "post_result_sample_extension_allowed": false,
+    "seed_replacement_allowed": false
+  },
+  "implementation_digest": "a5ab894e5ff4d3b669da274771f247e58f06aab992873fc9fe76dfdcf8622d8c",
+  "implementation_files": {
+    "codex_hydrogym/gate0/cli.py": "34b2bad66e5b2b43b516f59c3ec2ac96bc3f8a1add0db382c36ab571f37d5df0",
+    "codex_hydrogym/gate0/ensemble_diagnostic.py": "97256c4672c06393a21c58c128f63be4902406b377254d7439c0477c9cf11f29",
+    "codex_hydrogym/gate0/ensemble_replication.py": "b0b1b902a20391c674e500423bbdc69d19f4c6f1993ad04c1e8482d69e1df88d",
+    "codex_hydrogym/gate0/protocol.py": "cfb0f668ae7c689497cfba64ee4d9ab85b3c59a0842e14f118a1fbccea8157d4",
+    "hydrogym/jax/envs/kolmogorov.py": "9c1c50dd94f57b116cf32dfbdbcccf2c37d73684e2c9e18107aa1051137db954",
+    "hydrogym/jax/kolmogorov_contract.py": "339041c0bbcb3df448f947742aac93df8b49d76ab4e4b4947200b2689a6ad2a9",
+    "hydrogym/jax/solvers/base.py": "a344274a907eb4e9383895d2f952b6d71d07c2389d3b7bd5cc7424d310f34bd5",
+    "hydrogym/jax/utils/utils.py": "955c4ac8a05cb929405331d70b4f8b51b5f296227a57c4fb6240cdf042b1a4d4"
+  },
+  "materialized_gate_config": {
+    "action_time": 1.0,
+    "constant_candidates": [
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.25,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.1767766952966369,
+        0.17677669529663687,
+        0.0,
+        0.0
+      ],
+      [
+        1.5308084989341915e-17,
+        0.25,
+        0.0,
+        0.0
+      ],
+      [
+        -0.17677669529663687,
+        0.1767766952966369,
+        0.0,
+        0.0
+      ],
+      [
+        -0.25,
+        3.061616997868383e-17,
+        0.0,
+        0.0
+      ],
+      [
+        -0.17677669529663692,
+        -0.17677669529663687,
+        0.0,
+        0.0
+      ],
+      [
+        -4.592425496802574e-17,
+        -0.25,
+        0.0,
+        0.0
+      ],
+      [
+        0.17677669529663684,
+        -0.17677669529663692,
+        0.0,
+        0.0
+      ],
+      [
+        0.5,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.3535533905932738,
+        0.35355339059327373,
+        0.0,
+        0.0
+      ],
+      [
+        3.061616997868383e-17,
+        0.5,
+        0.0,
+        0.0
+      ],
+      [
+        -0.35355339059327373,
+        0.3535533905932738,
+        0.0,
+        0.0
+      ],
+      [
+        -0.5,
+        6.123233995736766e-17,
+        0.0,
+        0.0
+      ],
+      [
+        -0.35355339059327384,
+        -0.35355339059327373,
+        0.0,
+        0.0
+      ],
+      [
+        -9.184850993605148e-17,
+        -0.5,
+        0.0,
+        0.0
+      ],
+      [
+        0.3535533905932737,
+        -0.35355339059327384,
+        0.0,
+        0.0
+      ]
+    ],
+    "controller_warmup_intervals": 50,
+    "convergence_seed": 907,
+    "development_phase_turns": [
+      0.0625,
+      0.5625
+    ],
+    "development_seeds": [
+      1100085772,
+      619716833,
+      1680869979,
+      270788329,
+      1326527252,
+      625393611,
+      901546380,
+      1422036434,
+      373522063,
+      1374108181
+    ],
+    "dt": 0.002,
+    "effort_match_atol": 1e-12,
+    "feedback_gain_candidates": [
+      0.25,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "forcing_wavenumber": 4,
+    "grid_size": [
+      64,
+      64
+    ],
+    "heldout_phase_turns": [
+      0.1875,
+      0.6875
+    ],
+    "heldout_seeds": [
+      907,
+      1009
+    ],
+    "initial_perturbation_amplitude": 0.001,
+    "maximum_cfl": 0.5,
+    "maximum_divergence_ratio": 1e-10,
+    "maximum_reward_identity_relative_error": 1e-10,
+    "maximum_spatial_arm_tke_relative_difference": 0.05,
+    "maximum_spatial_effect_difference": 0.03,
+    "maximum_spectral_tail_fraction": 0.05,
+    "maximum_temporal_arm_tke_relative_difference": 0.02,
+    "maximum_temporal_effect_difference": 0.02,
+    "maximum_zero_mode_ratio": 1e-10,
+    "minimum_absolute_tke_reduction": 0.005,
+    "minimum_relative_tke_reduction": 0.05,
+    "minimum_seed_win_fraction": 0.6666666666666666,
+    "observation_contract_version": "signed_forced_mode_v1",
+    "precision": "float64",
+    "protocol_id": "re100_fresh_seed_windowed_convergence_replication_v1",
+    "radial_action_bound": 0.5,
+    "reynolds_number": 100.0,
+    "save_time": 0.2,
+    "schema_version": "codex_hydrogym.gate0.v1",
+    "scored_intervals": 200,
+    "spatial_refinement_grid_size": [
+      96,
+      96
+    ],
+    "temporal_refinement_dt": 0.001,
+    "uncontrolled_burn_in_intervals": 100
+  },
+  "materialized_gate_config_fingerprint": "8c589d4457e0dd25f1a77b1c214784b12748b925f16c590c27bb389619e817da",
+  "predecessor_evidence": {
+    "diagnostic_result_digest": "e45eb7f6b19b52d6580462ef22e0efcc87a6cd435916f88694ef25e375777d9b",
+    "diagnostic_study_fingerprint": "19927dd9f42cdcda5a7faf938a1a9da7814e4bb3031a1f15b08670ece6dd6caf",
+    "prior_observations_in_replication_analysis": 0,
+    "v2_final_report_digest": "e8a19fa835a991f233ed7087c31a7c947c6a61a9a3c04ceb935db2870f8dd463",
+    "v2_protocol_fingerprint": "2729e365a5712b824d4d1a2257ade19519aa454509a221790ddcabf2021b32a9"
+  },
+  "spec": {
+    "claim_boundary": "Exploratory development-only replication-sizing evidence. The fixed ten-seed sample is analyzed separately from the completed four-seed diagnostic; results must never be pooled or appended. No held-out gate, RL, reward proposal, coding-agent comparison, MemAlign, GEPA, deployment, or fluid-improvement claim is performed. Even a positive screen only supports designing a separately preregistered full gate.",
+    "conditions": [
+      {
+        "arm_relative_difference_limit": null,
+        "dt": 0.002,
+        "effect_difference_limit": null,
+        "grid_size": [
+          64,
+          64
+        ],
+        "label": "base"
+      },
+      {
+        "arm_relative_difference_limit": 0.02,
+        "dt": 0.001,
+        "effect_difference_limit": 0.02,
+        "grid_size": [
+          64,
+          64
+        ],
+        "label": "temporal"
+      },
+      {
+        "arm_relative_difference_limit": 0.05,
+        "dt": 0.002,
+        "effect_difference_limit": 0.03,
+        "grid_size": [
+          96,
+          96
+        ],
+        "label": "spatial"
+      }
+    ],
+    "controller_warmup_intervals": 50,
+    "feedback_gain": 2.0,
+    "intervals_per_window": 100,
+    "minimum_relative_feedback_effect": 0.05,
+    "phase_turns": [
+      0.0625,
+      0.5625
+    ],
+    "precision": "float64",
+    "radial_action_bound": 0.5,
+    "reserved_phase_turns": [
+      0.1875,
+      0.6875
+    ],
+    "reserved_seeds": [
+      907,
+      1009
+    ],
+    "reynolds_number": 100.0,
+    "sampling_plan": "Execute all ten prospectively selected seed clusters as one fixed sample. Do not inspect partial condition results for a decision, replace seeds, stop early, or extend the sample after results are seen.",
+    "schema_version": "codex_hydrogym.gate0.ensemble_replication.v1",
+    "scoring_windows": 2,
+    "seed_cluster_t_critical_90": 1.8331129326562368,
+    "seed_cluster_t_critical_95": 2.262157162798205,
+    "seed_selection_method": "For counter values starting at zero, compute SHA-256(namespace + ':' + decimal counter), interpret the first eight digest bytes as an unsigned big-endian integer, reduce modulo 2^31-1, and accept the nonzero candidate if it is distinct and is not a prior or reserved seed; stop after ten acceptances.",
+    "seed_selection_namespace": "codex_hydrogym.re100_windowed_convergence_replication_v1.seed_selection",
+    "seeds": [
+      1100085772,
+      619716833,
+      1680869979,
+      270788329,
+      1326527252,
+      625393611,
+      901546380,
+      1422036434,
+      373522063,
+      1374108181
+    ],
+    "source_diagnostic_result_digest": "e45eb7f6b19b52d6580462ef22e0efcc87a6cd435916f88694ef25e375777d9b",
+    "source_diagnostic_study_fingerprint": "19927dd9f42cdcda5a7faf938a1a9da7814e4bb3031a1f15b08670ece6dd6caf",
+    "source_v2_final_report_digest": "e8a19fa835a991f233ed7087c31a7c947c6a61a9a3c04ceb935db2870f8dd463",
+    "source_v2_protocol_fingerprint": "2729e365a5712b824d4d1a2257ade19519aa454509a221790ddcabf2021b32a9",
+    "study_id": "re100_fresh_seed_windowed_convergence_replication_v1",
+    "uncontrolled_burn_in_intervals": 100
+  },
+  "status": "frozen_before_execution",
+  "study_fingerprint": "269507101a5206fccab3c90504f7a46009f28381070a0d97875a06429fb19b62"
+}

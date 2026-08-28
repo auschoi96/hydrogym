@@ -1,0 +1,77 @@
+experiment_name: codex_hydrogym
+mlflow_run_name: codex_hydrogym_h100_ppo
+mlflow_experiment_directory: /Workspace/Shared
+
+environment:
+  version: '5'
+  dependencies:
+    - jax[cuda12]==0.7.2
+    - jaxlib==0.7.2
+    - flax==0.12.0
+    - optax==0.2.8
+    - distrax==0.1.9
+    - gymnax==0.0.9
+    - chex==0.1.92
+    - navix==0.11.0
+    - tree-math==0.2.1
+    - matplotlib==3.10.7
+    - omegaconf==2.3.0
+    - toml==0.10.2
+    - pyyaml==6.0.3
+    - mlflow==3.11.1
+
+code_source:
+  type: snapshot
+  snapshot:
+    root_path: .
+
+compute:
+  num_accelerators: 1
+  accelerator_type: GPU_1xH100
+
+env_variables:
+  CODEX_HYDROGYM_OUTPUT_DIR: /tmp/codex_hydrogym_air
+  JAX_ENABLE_X64: "false"
+  XLA_PYTHON_CLIENT_PREALLOCATE: "false"
+  MPLBACKEND: Agg
+
+parameters:
+  project_label: codex_hydrogym
+  alignment_stage: baseline
+  prompt_uri: prompts:/codex_hydrogym_reward_student@baseline
+  registered_model_name: austin_choi_omni_agent_catalog.codex_hydrogym.codex_hydrogym_ppo_controller
+  checkpoint_every: 4
+  ppo:
+    run_name: h100_ppo
+    seed: 42
+    precision: float32
+    reynolds_number: 200.0
+    forcing_wavenumber: 4
+    grid_size: [64, 64]
+    obs_size: 8
+    dt: 0.005
+    action_time: 1.0
+    save_time: 0.1
+    reward_alpha: 1.0
+    initial_perturbation_amplitude: 0.001
+    max_episode_steps: 256
+    learning_rate: 0.0001
+    num_envs: 8
+    num_steps: 16
+    total_timesteps: 4096
+    update_epochs: 4
+    num_minibatches: 8
+    gamma: 0.99
+    gae_lambda: 0.985
+    clip_epsilon: 0.2
+    entropy_coefficient: 0.0
+    value_coefficient: 0.5
+    max_grad_norm: 0.5
+    activation: tanh
+    anneal_learning_rate: false
+    normalize_environment: false
+
+timeout_minutes: 360
+max_retries: 1
+
+command: cd "$CODE_SOURCE_PATH" && python -m codex_hydrogym.training.air_entrypoint

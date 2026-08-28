@@ -1,0 +1,27 @@
+{
+  "approval_basis": {
+    "approval_channel": "Codex collaboration thread",
+    "approval_statement": "yes do it, let's get ready for PPO soon",
+    "approved_accelerator_count": 1,
+    "approved_accelerator_type": "GPU_1xH100",
+    "approved_at_utc": "2026-08-26T20:03:41Z",
+    "approved_expected_trajectory_count": 360,
+    "approved_expected_window_count": 720,
+    "approved_execution_service": "Databricks AI Runtime",
+    "approved_precision": "float64",
+    "preflight_job_id": 1057054860106994,
+    "preflight_mlflow_run_id": "3b16e54b500d49d6a36866d0343ce386",
+    "preflight_run_id": 199802627560370,
+    "preflight_task_run_id": 751301736884830
+  },
+  "artifact_digest": "39b4ab964755ff1ea1d7747939ac77517219faa2648702adbc4d022040902667",
+  "claim_boundary_acknowledged": "This approves one held-out fixed-controller Gate 0 execution only. It performs no PPO, coding-agent reward comparison, MemAlign evaluation, GEPA evaluation, model promotion, or application deployment.",
+  "decision": "approved_for_one_full_execution",
+  "execution_token_sha256": "f6cf4be64101d4642489de6bd9c9558c67dfb152c3795c56471a3d0a237b51c5",
+  "implementation_digest": "17fd18a51e8bfb2e8b6d018e7fe824a9b68921fe38d62d231e6634d6203b9dfe",
+  "protocol_artifact_digest": "024039795a851caa0a1ea77580983aa2c869d40d05564f0765fdc56f1920db3f",
+  "reserved_cases_opened_before_approval": false,
+  "reviewed_by": "austin.choi@databricks.com",
+  "schema_version": "codex_hydrogym.gate0.re100_v3.review.v1",
+  "study_fingerprint": "885ff77559dadd18cc54d91a30ecb6a48477a4c2baed46fc728635ea3eae8b38"
+}

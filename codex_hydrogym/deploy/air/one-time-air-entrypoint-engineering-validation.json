@@ -1,0 +1,27 @@
+{
+  "run_name": "codex_hydrogym AIR entry-point engineering validation",
+  "timeout_seconds": 1200,
+  "tasks": [
+    {
+      "task_key": "zero_cfd_entrypoint_contract",
+      "environment_key": "validation_environment",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_replication/air_entrypoint_engineering_validation",
+        "source": "WORKSPACE",
+        "base_parameters": {
+          "entrypoint_path": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_replication/engineering_validation/gate0_replication_entrypoint.py",
+          "expected_entrypoint_sha256": "eb9897c0ae977864ee6cd494b6a0d6157234247a1881492110bde7eb71252103"
+        }
+      }
+    }
+  ],
+  "environments": [
+    {
+      "environment_key": "validation_environment",
+      "spec": {
+        "client": "4",
+        "dependencies": []
+      }
+    }
+  ]
+}

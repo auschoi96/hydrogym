@@ -1,0 +1,134 @@
+{
+  "analysis": {
+    "claim_boundary": "Exploratory development-only numerical evidence. No held-out gate, RL, reward proposal, coding-agent comparison, MemAlign, GEPA, or fluid-improvement claim is performed. Even a positive screen only supports designing a separately preregistered full gate.",
+    "condition_metrics": {
+      "base": {
+        "aggregate_relative_effect": 0.4069652460394657,
+        "feedback_mean_tke": 1.1088674027669132,
+        "feedback_window_win_fraction": 1.0,
+        "minimum_window_relative_effect": 0.35381856519555915,
+        "seed_cluster_effect_ci_95": {
+          "lower": 0.3886620497176278,
+          "mean": 0.40582776503530626,
+          "standard_error": 0.005393874293865005,
+          "upper": 0.42299348035298473
+        },
+        "seed_cluster_relative_effects": {
+          "401": 0.41130251211863145,
+          "503": 0.41195298446062567,
+          "607": 0.410380457247758,
+          "709": 0.38967510631421004
+        },
+        "window_relative_effect_means": {
+          "0": 0.39351997956896323,
+          "1": 0.41813555050164936
+        },
+        "zero_mean_tke": 1.8698185820669575
+      },
+      "spatial": {
+        "aggregate_relative_effect": 0.4264477490046373,
+        "feedback_mean_tke": 1.1123105854022972,
+        "feedback_window_win_fraction": 1.0,
+        "minimum_window_relative_effect": 0.37999964388546653,
+        "seed_cluster_effect_ci_95": {
+          "lower": 0.40024014946222664,
+          "mean": 0.4257459068859307,
+          "standard_error": 0.00801451304342616,
+          "upper": 0.4512516643096348
+        },
+        "seed_cluster_relative_effects": {
+          "401": 0.4119765476224436,
+          "503": 0.4445140969933893,
+          "607": 0.43364972804058244,
+          "709": 0.4128432548873076
+        },
+        "window_relative_effect_means": {
+          "0": 0.41090932893156634,
+          "1": 0.44058248484029516
+        },
+        "zero_mean_tke": 1.9393360996700029
+      },
+      "temporal": {
+        "aggregate_relative_effect": 0.410880508229882,
+        "feedback_mean_tke": 1.1026165683005082,
+        "feedback_window_win_fraction": 1.0,
+        "minimum_window_relative_effect": 0.33437697600556415,
+        "seed_cluster_effect_ci_95": {
+          "lower": 0.38928554931107756,
+          "mean": 0.40973051119889425,
+          "standard_error": 0.006424291229633335,
+          "upper": 0.43017547308671095
+        },
+        "seed_cluster_relative_effects": {
+          "401": 0.4171705805176325,
+          "503": 0.4172038294983442,
+          "607": 0.3905937375390449,
+          "709": 0.41395389724055537
+        },
+        "window_relative_effect_means": {
+          "0": 0.3838763793293161,
+          "1": 0.43558464306847233
+        },
+        "zero_mean_tke": 1.8716348443802016
+      }
+    },
+    "refinement_metrics": {
+      "spatial": {
+        "aggregate_effect_difference": 0.019482502965171566,
+        "arm_point_convergence": true,
+        "arm_relative_difference_limit": 0.05,
+        "effect_difference_limit": 0.03,
+        "effect_equivalence_ci_supported": false,
+        "effect_point_convergence": true,
+        "feedback_arm_relative_difference": 0.0031051346867915623,
+        "maximum_arm_relative_difference": 0.037178749997338494,
+        "paired_seed_effect_difference_ci_90": {
+          "lower": 0.00395724561385875,
+          "mean": 0.019918141850624446,
+          "standard_error": 0.006782163774933371,
+          "upper": 0.03587903808739014
+        },
+        "zero_arm_relative_difference": 0.037178749997338494
+      },
+      "temporal": {
+        "aggregate_effect_difference": 0.003915262190416269,
+        "arm_point_convergence": true,
+        "arm_relative_difference_limit": 0.02,
+        "effect_difference_limit": 0.02,
+        "effect_equivalence_ci_supported": false,
+        "effect_point_convergence": true,
+        "feedback_arm_relative_difference": 0.005637134296497031,
+        "maximum_arm_relative_difference": 0.005637134296497031,
+        "paired_seed_effect_difference_ci_90": {
+          "lower": -0.01738678173023495,
+          "mean": 0.0039027461635879612,
+          "standard_error": 0.009046425885178124,
+          "upper": 0.025192274057410872
+        },
+        "zero_arm_relative_difference": 0.000971357505302092
+      }
+    },
+    "screening": {
+      "both_window_means_material": true,
+      "feedback_wins_every_window": true,
+      "numerical_validity": true,
+      "positive_seed_cluster_effect_ci": true,
+      "spatial_arm_point_convergence": true,
+      "spatial_effect_equivalence_ci_supported": false,
+      "spatial_effect_point_convergence": true,
+      "temporal_arm_point_convergence": true,
+      "temporal_effect_equivalence_ci_supported": false,
+      "temporal_effect_point_convergence": true
+    },
+    "supports_designing_full_gate": false
+  },
+  "artifact_digest": "e45eb7f6b19b52d6580462ef22e0efcc87a6cd435916f88694ef25e375777d9b",
+  "condition_artifact_digests": {
+    "base": "2d3e9b41c329a5a0e9692a68c17319b01bf8cec97924f6123a751a045ea509f3",
+    "spatial": "86c508e165271419d7b63a86ecbb83e53fc4926acafc6a143b229a290d759439",
+    "temporal": "e819c1b2a65450253ab75476365dda28092fbd77e933639efa86ad6f34768860"
+  },
+  "implementation_digest": "0df64047e2c1372b79fb92420c2c99f75213f3386c1fc06767cd31f203de674b",
+  "status": "completed",
+  "study_fingerprint": "19927dd9f42cdcda5a7faf938a1a9da7814e4bb3031a1f15b08670ece6dd6caf"
+}

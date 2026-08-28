@@ -1,0 +1,66 @@
+{
+  "name": "codex_hydrogym Re=100 ten-seed replication (H100 primary)",
+  "description": "Reusable Databricks AI Runtime Job for the exact frozen 120-trajectory replication. Run only after the zero-CFD preflight succeeds. This is not PPO.",
+  "max_concurrent_runs": 1,
+  "timeout_seconds": 43200,
+  "queue": {
+    "enabled": true
+  },
+  "tags": {
+    "project": "codex_hydrogym",
+    "workflow": "ensemble_replication",
+    "claim_role": "primary_decision_bearing_execution",
+    "study_fingerprint": "269507101a5206fccab3c90504f7a46009f28381070a0d97875a06429fb19b62",
+    "compute": "GPU_1xH100_float64"
+  },
+  "tasks": [
+    {
+      "task_key": "ensemble_replication_h100",
+      "run_if": "ALL_SUCCESS",
+      "timeout_seconds": 0,
+      "max_retries": 0,
+      "retry_on_timeout": false,
+      "ai_runtime_task": {
+        "experiment": "ensemble_replication_h100",
+        "deployments": [
+          {
+            "command_path": "/Workspace/Users/austin.choi@databricks.com/.air/cli_launch/ensemble_replication_h100/re100_ten_seed_replication_primary/command.sh",
+            "compute": {
+              "accelerator_type": "GPU_1xH100",
+              "accelerator_count": 1
+            }
+          }
+        ],
+        "code_source_path": "/Workspace/Users/austin.choi@databricks.com/.air/repo_snapshots/codex_hydrogym/codex_hydrogym_20260825_134411.tar.gz",
+        "mlflow_experiment_directory": "/Workspace/Users/austin.choi@databricks.com/codex_hydrogym_gate0_replication",
+        "mlflow_run": "re100_ten_seed_replication_primary"
+      },
+      "environment_key": "replication_environment"
+    }
+  ],
+  "environments": [
+    {
+      "environment_key": "replication_environment",
+      "spec": {
+        "environment_version": "5",
+        "dependencies": [
+          "jax[cuda12]==0.7.2",
+          "jaxlib==0.7.2",
+          "chex==0.1.92",
+          "flax==0.12.0",
+          "gymnasium==1.3.0",
+          "gymnax==0.0.9",
+          "huggingface-hub==1.27.0",
+          "matplotlib==3.11.1",
+          "mlflow==3.11.1",
+          "navix==0.11.0",
+          "numpy==2.5.2",
+          "omegaconf==2.3.1",
+          "scipy==1.18.0",
+          "toml==0.10.2",
+          "tree-math==0.2.1"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+resources:
+  jobs:
+    codex_hydrogym_bootstrap_feedback:
+      name: codex_hydrogym_bootstrap_feedback
+      description: Generate bounded proposals, score the judge portfolio, and open human labeling.
+      max_concurrent_runs: 1
+      timeout_seconds: 7200
+      tags:
+        project: codex_hydrogym
+        workflow: bootstrap_feedback
+      tasks:
+        - task_key: codex_hydrogym_bootstrap_feedback
+          environment_key: codex_hydrogym_genai
+          python_wheel_task:
+            package_name: hydrogym
+            entry_point: codex-hydrogym-genai
+            parameters:
+              - --experiment-id
+              - ${resources.experiments.codex_hydrogym_experiment.id}
+              - --student-model
+              - ${var.student_model}
+              - --primary-judge-model
+              - ${var.primary_judge_model}
+              - --audit-judge-models
+              - ${var.audit_judge_models}
+              - --reflection-models
+              - ${var.reflection_models}
+              - --small-task-model
+              - ${var.small_task_model}
+              - bootstrap
+              - --reviewer
+              - ${workspace.current_user.userName}
+              - --proposal-count
+              - "12"
+      environments: &codex_hydrogym_environments
+        - environment_key: codex_hydrogym_genai
+          spec:
+            client: "4"
+            dependencies:
+              - ../dist/*.whl
+              - "mlflow[databricks]>=3.11.1,<4"
+              - "openai>=1.68,<3"
+              - "dspy>=3.0,<4"
+              - "gepa>=0.0.26,<1"
+
+    codex_hydrogym_memalign:
+      name: codex_hydrogym_memalign
+      description: Align fluid_reward_plausibility to attributable expert assessments using MemAlign.
+      max_concurrent_runs: 1
+      timeout_seconds: 7200
+      tags:
+        project: codex_hydrogym
+        workflow: memalign
+      tasks:
+        - task_key: codex_hydrogym_memalign
+          environment_key: codex_hydrogym_genai
+          python_wheel_task:
+            package_name: hydrogym
+            entry_point: codex-hydrogym-genai
+            parameters:
+              - --experiment-id
+              - ${resources.experiments.codex_hydrogym_experiment.id}
+              - --student-model
+              - ${var.student_model}
+              - --primary-judge-model
+              - ${var.primary_judge_model}
+              - --audit-judge-models
+              - ${var.audit_judge_models}
+              - --reflection-models
+              - ${var.reflection_models}
+              - --small-task-model
+              - ${var.small_task_model}
+              - align
+              - --retrieval-k
+              - "5"
+      environments: *codex_hydrogym_environments
+
+    codex_hydrogym_gepa:
+      name: codex_hydrogym_gepa
+      description: Optimize the bounded reward-student prompt with the aligned judge and GEPA.
+      max_concurrent_runs: 1
+      timeout_seconds: 14400
+      tags:
+        project: codex_hydrogym
+        workflow: gepa
+      tasks:
+        - task_key: codex_hydrogym_gepa
+          environment_key: codex_hydrogym_genai
+          python_wheel_task:
+            package_name: hydrogym
+            entry_point: codex-hydrogym-genai
+            parameters:
+              - --experiment-id
+              - ${resources.experiments.codex_hydrogym_experiment.id}
+              - --student-model
+              - ${var.student_model}
+              - --primary-judge-model
+              - ${var.primary_judge_model}
+              - --audit-judge-models
+              - ${var.audit_judge_models}
+              - --reflection-models
+              - ${var.reflection_models}
+              - --small-task-model
+              - ${var.small_task_model}
+              - optimize
+              - --prompt-uri
+              - prompts:/codex_hydrogym_reward_student@baseline
+              - --max-metric-calls
+              - "75"
+      environments: *codex_hydrogym_environments
+
+    codex_hydrogym_promote:
+      name: codex_hydrogym_promote
+      description: Promote a GEPA prompt only after comparable held-out PPO physics gates.
+      max_concurrent_runs: 1
+      timeout_seconds: 1800
+      tags:
+        project: codex_hydrogym
+        workflow: guarded_promotion
+      parameters:
+        - name: prompt_version
+          default: REQUIRED
+        - name: baseline_run_id
+          default: REQUIRED
+        - name: candidate_run_id
+          default: REQUIRED
+      tasks:
+        - task_key: codex_hydrogym_promote
+          environment_key: codex_hydrogym_genai
+          python_wheel_task:
+            package_name: hydrogym
+            entry_point: codex-hydrogym-genai
+            parameters:
+              - --experiment-id
+              - ${resources.experiments.codex_hydrogym_experiment.id}
+              - --student-model
+              - ${var.student_model}
+              - --primary-judge-model
+              - ${var.primary_judge_model}
+              - --audit-judge-models
+              - ${var.audit_judge_models}
+              - --reflection-models
+              - ${var.reflection_models}
+              - --small-task-model
+              - ${var.small_task_model}
+              - promote
+              - --prompt-version
+              - "{{job.parameters.prompt_version}}"
+              - --baseline-run-id
+              - "{{job.parameters.baseline_run_id}}"
+              - --candidate-run-id
+              - "{{job.parameters.candidate_run_id}}"
+      environments: *codex_hydrogym_environments
+
+    codex_hydrogym_promote_controller:
+      name: codex_hydrogym_promote_controller
+      description: Move a registered PPO controller to production only after comparable held-out physics gates.
+      max_concurrent_runs: 1
+      timeout_seconds: 1800
+      tags:
+        project: codex_hydrogym
+        workflow: guarded_controller_promotion
+      parameters:
+        - name: registered_model_version
+          default: REQUIRED
+        - name: baseline_run_id
+          default: REQUIRED
+        - name: candidate_run_id
+          default: REQUIRED
+      tasks:
+        - task_key: codex_hydrogym_promote_controller
+          environment_key: codex_hydrogym_genai
+          python_wheel_task:
+            package_name: hydrogym
+            entry_point: codex-hydrogym-model
+            parameters:
+              - promote
+              - --registered-model-name
+              - ${var.registered_model_name}
+              - --registered-model-version
+              - "{{job.parameters.registered_model_version}}"
+              - --baseline-run-id
+              - "{{job.parameters.baseline_run_id}}"
+              - --candidate-run-id
+              - "{{job.parameters.candidate_run_id}}"
+      environments: *codex_hydrogym_environments

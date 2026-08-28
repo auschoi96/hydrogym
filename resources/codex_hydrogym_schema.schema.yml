@@ -1,0 +1,7 @@
+resources:
+  schemas:
+    codex_hydrogym_schema:
+      name: ${var.schema}
+      catalog_name: ${var.catalog}
+      comment: Fresh Unity Catalog schema for codex_hydrogym MLflow models and fluid-RL demo assets.
+

@@ -1,0 +1,43 @@
+"""Deterministic pre-RL controllability gate for the Kolmogorov demo."""
+
+from codex_hydrogym.gate0.protocol import (
+    GATE0_CONVERGENCE_SCHEMA_VERSION,
+    REQUIRED_CONVERGENCE_GATES,
+    REQUIRED_PRIMARY_GATES,
+    Gate0Case,
+    Gate0ConvergenceAttestation,
+    Gate0ConvergenceRun,
+    Gate0Config,
+    Gate0DevelopmentLock,
+    Gate0DevelopmentSearchError,
+    Gate0RefinementProvenance,
+    Gate0RefinementEvidence,
+    Gate0RefinementTraceSummary,
+    Gate0Report,
+    FrozenSignedController,
+    HydroGymEpisodeFactory,
+    lock_development_controls,
+    run_gate0,
+    run_gate0_convergence,
+)
+
+__all__ = [
+    "FrozenSignedController",
+    "GATE0_CONVERGENCE_SCHEMA_VERSION",
+    "Gate0Case",
+    "Gate0ConvergenceAttestation",
+    "Gate0ConvergenceRun",
+    "Gate0Config",
+    "Gate0DevelopmentLock",
+    "Gate0DevelopmentSearchError",
+    "Gate0RefinementProvenance",
+    "Gate0RefinementEvidence",
+    "Gate0RefinementTraceSummary",
+    "Gate0Report",
+    "HydroGymEpisodeFactory",
+    "REQUIRED_CONVERGENCE_GATES",
+    "REQUIRED_PRIMARY_GATES",
+    "lock_development_controls",
+    "run_gate0",
+    "run_gate0_convergence",
+]

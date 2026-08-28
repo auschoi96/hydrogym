@@ -1,0 +1,20 @@
+resources:
+  apps:
+    codex_hydrogym_app:
+      name: codex-hydrogym
+      description: codex_hydrogym evidence-gated fluid-control cockpit
+      source_code_path: ../codex_hydrogym/appkit/codex-hydrogym
+      config:
+        command:
+          - npm
+          - run
+          - start
+        env:
+          - name: MLFLOW_EXPERIMENT_ID
+            value_from: experiment
+      resources:
+        - name: experiment
+          description: MLflow traces, critic-quality assessments, and controller evidence
+          experiment:
+            experiment_id: ${resources.experiments.codex_hydrogym_experiment.id}
+            permission: CAN_EDIT

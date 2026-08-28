@@ -1,0 +1,50 @@
+bundle:
+  name: codex_hydrogym
+
+include:
+  - resources/codex_hydrogym*.yml
+
+artifacts:
+  codex_hydrogym_wheel:
+    type: whl
+    build: uv build --wheel
+
+variables:
+  catalog:
+    description: Existing writable Unity Catalog catalog for the fresh demo schema.
+  schema:
+    description: Fresh schema owned by the codex_hydrogym bundle.
+  student_model:
+    description: Verified Unity AI Gateway model service for bounded reward proposals.
+    default: "__CONFIGURE_BEFORE_DEPLOY__"
+  primary_judge_model:
+    description: Verified primary model service for fluid_reward_plausibility and MemAlign.
+    default: "__CONFIGURE_BEFORE_DEPLOY__"
+  audit_judge_models:
+    description: Three or more comma-separated verified audit-judge model services.
+    default: "__CONFIGURE_BEFORE_DEPLOY__"
+  reflection_models:
+    description: Two or more comma-separated verified reflection model services for MemAlign and GEPA.
+    default: "__CONFIGURE_BEFORE_DEPLOY__"
+  small_task_model:
+    description: Verified low-latency model service for utility work.
+    default: "__CONFIGURE_BEFORE_DEPLOY__"
+  registered_model_name:
+    description: Target writable catalog.schema.codex_hydrogym_* Unity Catalog model name (required).
+
+targets:
+  demo:
+    default: true
+    mode: production
+    workspace:
+      host: https://fevm-austin-choi-omni-agent.cloud.databricks.com
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/codex_hydrogym/${bundle.target}
+    variables:
+      catalog: austin_choi_omni_agent_catalog
+      schema: codex_hydrogym
+      student_model: system.ai.kimi-k3
+      primary_judge_model: system.ai.claude-opus-5
+      audit_judge_models: system.ai.gpt-5-6-sol,system.ai.deepseek-v4-pro-0813,system.ai.glm-5-2
+      reflection_models: system.ai.gpt-5-6-sol,system.ai.kimi-k3,system.ai.claude-opus-5
+      small_task_model: system.ai.deepseek-v4-flash-0731
+      registered_model_name: austin_choi_omni_agent_catalog.codex_hydrogym.codex_hydrogym_ppo_controller

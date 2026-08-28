@@ -1,0 +1,20 @@
+command:
+  - sh
+  - -c
+  - >-
+    exec streamlit run app.py --server.port="${DATABRICKS_APP_PORT:-8000}"
+    --server.address=0.0.0.0 --server.enableCORS=false --server.enableXsrfProtection=false
+
+env:
+  - name: MLFLOW_EXPERIMENT_ID
+    valueFrom: experiment
+  - name: CODEX_HYDROGYM_STUDENT_MODEL
+    value: "system.ai.kimi-k3"
+  - name: CODEX_HYDROGYM_PRIMARY_JUDGE_MODEL
+    value: "system.ai.claude-opus-5"
+  - name: CODEX_HYDROGYM_AUDIT_JUDGE_MODELS
+    value: "system.ai.gpt-5-6-sol,system.ai.deepseek-v4-pro-0813,system.ai.glm-5-2"
+  - name: CODEX_HYDROGYM_REFLECTION_MODELS
+    value: "system.ai.gpt-5-6-sol,system.ai.kimi-k3,system.ai.claude-opus-5"
+  - name: CODEX_HYDROGYM_SMALL_TASK_MODEL
+    value: "system.ai.deepseek-v4-flash-0731"

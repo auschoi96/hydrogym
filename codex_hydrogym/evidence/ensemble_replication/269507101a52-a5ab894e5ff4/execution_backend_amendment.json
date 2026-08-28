@@ -1,0 +1,24 @@
+{
+  "artifact_digest": "28747c56c53d2dd251dee8f17f49ef1c67c5d5b01d5fc9b3ea9d1b8f8c84e181",
+  "authorized_at_utc": "2026-08-25T20:36:00Z",
+  "authorized_change": {
+    "accelerator_count": 1,
+    "accelerator_type": "GPU_1xH100",
+    "execution_service": "Databricks AI Runtime",
+    "jax_backend": "gpu",
+    "precision": "float64"
+  },
+  "expected_effect": "reduce_wall_clock_time_without_changing_the_frozen_study_design",
+  "previous_transition_artifact_digest": "deb256b550dd7d3d0fc88746db4ca7b0cbcdeb60f8b921d4fe19bb0466ad2e8a",
+  "schema": "codex_hydrogym.ensemble_replication_execution_backend_amendment.v1",
+  "scientific_safeguards": {
+    "decision_made_blind_to_local_partial_metrics": true,
+    "local_partial_artifact_in_analysis": false,
+    "ppo_or_training_authorized": false,
+    "protocol_seeds_or_thresholds_changed": false,
+    "reserved_cases_opened": false,
+    "runtime_must_fail_closed_unless_jax_x64_and_gpu_are_active": true
+  },
+  "study_fingerprint": "269507101a5206fccab3c90504f7a46009f28381070a0d97875a06429fb19b62",
+  "user_direction": "use GPU capacity when it can make the Databricks test faster"
+}

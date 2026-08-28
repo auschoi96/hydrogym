@@ -1,4 +1,5 @@
-from typing import Callable, Iterable, NamedTuple, Tuple
+import math
+from typing import Callable, Iterable, NamedTuple, Optional, Tuple
 
 import jax
 import jax.numpy as jnp
@@ -15,6 +16,18 @@ _beta_RK4 = [0, -0.4178904745, -1.192151694643, -1.697784692471, -1.514183444257
 _gammas_RK4 = [0.1496590219993, 0.3792103129999, 0.8229550293869, 0.6994504559488, 0.1530572479681]
 
 
+def _exact_step_count(duration: float, dt: float, label: str) -> int:
+    """Convert a physical duration to a validated integer step count."""
+    if duration <= 0.0 or dt <= 0.0:
+        raise ValueError(f"{label} and dt must both be positive")
+
+    ratio = duration / dt
+    steps = int(round(ratio))
+    if not math.isclose(ratio, steps, rel_tol=1.0e-10, abs_tol=1.0e-9):
+        raise ValueError(f"{label}={duration} must be an integer multiple of dt={dt}")
+    return steps
+
+
 class VelocityState(NamedTuple):
     u: jnp.ndarray  # physical or spectral depending on usage
     v: jnp.ndarray
@@ -29,7 +42,7 @@ class RungeKuttaCrankNicolson(TransientSolver):
         self.equation = equation
         super().__init__(flow, dt)
 
-    def RK4_CN(self, control_field=None):
+    def RK4_CN(self, dt: Optional[float] = None, control_field=None):
         """
         Crank-Nicolson RK4 implicit-explicit time stepping scheme.
         Low storage scheme inspired by [1]. Method described in [2].
@@ -41,6 +54,7 @@ class RungeKuttaCrankNicolson(TransientSolver):
         [1] Kochkov, D., et. al. (2021) https://doi.org/10.1073/pnas.2101784118
         [2] PK Sweby, (1984). SIAM journal on numerical analysis 21, Appendix D.
         """
+        integration_dt = self.dt if dt is None else dt
         nonlinear_with_control = lambda u: self.equation.nonlinear_terms(u, control_field)
         unwrapped_nonlinear = tree_math.unwrap(nonlinear_with_control)
         unwrapped_linear = tree_math.unwrap(self.equation.linear_terms)
@@ -51,8 +65,8 @@ class RungeKuttaCrankNicolson(TransientSolver):
             h = 0
             for k in range(5):
                 h = unwrapped_nonlinear(u) + _beta_RK4[k] * h
-                mu = 0.5 * self.dt * (_alpha_RK4[k + 1] - _alpha_RK4[k])
-                yn = u + _gammas_RK4[k] * self.dt * h + mu * unwrapped_linear(u)
+                mu = 0.5 * integration_dt * (_alpha_RK4[k + 1] - _alpha_RK4[k])
+                yn = u + _gammas_RK4[k] * integration_dt * h + mu * unwrapped_linear(u)
                 u = y(yn, mu)
             return u
 
@@ -70,11 +84,11 @@ class RungeKuttaCrankNicolson(TransientSolver):
                                               this drastically reduces the memory requirements.
 
         """
-        func = self.RK4_CN(control_field=control_field)
+        func = self.RK4_CN(dt=dt, control_field=control_field)
 
         def inner_scan(initialization):
-            f = lambda init, inputs: (func(init), init)
-            final_state, outputs = lax.scan(f, initialization, xs=None, length=save_n)
+            f = lambda init, inputs: (func(init), None)
+            final_state, _ = lax.scan(f, initialization, xs=None, length=save_n)
             return final_state
 
         return inner_scan
@@ -84,30 +98,28 @@ class RungeKuttaCrankNicolson(TransientSolver):
         dt: float,
         flow: FlowConfig,
         t_span: Tuple[float, float],
-        callbacks: Iterable[CallbackBase] = [],
+        callbacks: Iterable[CallbackBase] = (),
         controller: Callable = None,
         save_n: int = 1,
         initial_state=None,
         control_field=None,
     ) -> PDEBase:
         end_time = t_span[1]
-        if end_time < 1:
-            raise ValueError(
-                "This flow configuration requires the end time to be at least 1. Please adjust t_span and run again."
-            )
 
         initialization = flow.initialize_state() if initial_state is None else initial_state
-        step_to_save = int(save_n // dt)
-
-        total_steps = int(end_time // dt)
-        outer_steps = int(total_steps // step_to_save)
+        step_to_save = _exact_step_count(float(save_n), float(dt), "save interval")
+        total_steps = _exact_step_count(float(end_time), float(dt), "action interval")
+        if total_steps % step_to_save:
+            raise ValueError("action interval must contain an integer number of save intervals")
+        outer_steps = total_steps // step_to_save
 
         inner_scan = self.step(flow, dt, step_to_save, callbacks, control_field=control_field)
 
-        outer_scan = lambda init, inputs: (inner_scan(init), inner_scan(init))
+        def outer_scan(init, inputs):
+            next_state = inner_scan(init)
+            return next_state, next_state
 
         final_state, outputs = lax.scan(outer_scan, initialization, xs=None, length=outer_steps)
-        flow.vorticity = outputs
         # Dummy values for iter, t for hydrogym api callback function.
         # Optimized iteration through JAX (with scan) is not the same as native python,
         # and the iterations can not easily be tracked.
