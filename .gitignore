@@ -16,6 +16,8 @@ eggs/
 .eggs/
 lib/
 lib64/
+!codex_hydrogym/appkit/codex-hydrogym/client/src/lib/
+!codex_hydrogym/appkit/codex-hydrogym/client/src/lib/**
 parts/
 sdist/
 var/
@@ -137,3 +139,11 @@ examples/firedrake/getting_started/output/
 
 # VSCode
 .vscode/
+
+# codex_hydrogym: JS deps, caches, build artifacts, tool state
+node_modules/
+.vite/
+*.whl
+.cursor/
+.isaac/
+.polly/
