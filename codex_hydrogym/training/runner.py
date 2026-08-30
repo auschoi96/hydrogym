@@ -1,9 +1,9 @@
 """Headless CLI and orchestration for codex_hydrogym PPO training."""
 
 import argparse
+import json
 from contextlib import nullcontext
 from dataclasses import dataclass
-import json
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -13,11 +13,12 @@ import numpy as np
 
 from codex_hydrogym import PROJECT_LABEL
 from codex_hydrogym.config import KolmogorovPPOConfig
+from codex_hydrogym.tracking import log_training_evidence, managed_mlflow_run
 from codex_hydrogym.training.artifacts import ArtifactPaths, write_training_artifacts
 from codex_hydrogym.training.checkpoints import restore_checkpoint, save_checkpoint
+from codex_hydrogym.training.frozen_metric_pin import assert_frozen_metric_source
 from codex_hydrogym.training.ppo import RunnerState, make_initialize, make_update
 from codex_hydrogym.training.validation import PhysicsValidationReport, validate_training_result
-from codex_hydrogym.tracking import log_training_evidence, managed_mlflow_run
 
 
 @dataclass(frozen=True)
@@ -91,6 +92,9 @@ def run_training(
     mlflow_client=None,
 ) -> TrainingRunResult:
     """Train in restartable JIT chunks and emit evidence after every successful run."""
+    # Tamper evidence: abort before ANY training work unless the imported frozen-metric
+    # source matches the reviewed pin (frozen_control_metric docstring, guard boundary).
+    assert_frozen_metric_source()
     if isinstance(checkpoint_every, bool) or not isinstance(checkpoint_every, int) or checkpoint_every <= 0:
         raise ValueError("checkpoint_every must be a positive integer")
     if registered_model_name is not None and not enable_mlflow:
