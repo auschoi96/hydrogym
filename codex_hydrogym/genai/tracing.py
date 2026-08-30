@@ -102,13 +102,42 @@ def configure_uc_trace_destination(*, environ: Mapping[str, str] | None = None, 
         missing = ", ".join(preflight.missing)
         raise RuntimeError(f"UC OTel tracing is enabled but required configuration is missing: {missing}")
 
-    if mlflow_module is None:
-        destination = importlib.import_module("mlflow.tracing.destination")
-    else:
-        destination = mlflow_module.tracing.destination
+    mlflow = mlflow_module or importlib.import_module("mlflow")
+    destination = mlflow.tracing.destination
     location = destination.UCSchemaLocation(preflight.catalog_name, preflight.schema_name)
-    destination.set_destination(location)
+    # UCSchemaLocation selects MLflow's OpenTelemetry/Unity Catalog exporter.
+    # set_destination is part of mlflow.tracing, not mlflow.tracing.destination.
+    mlflow.tracing.set_destination(location)
     return location
+
+
+def configure_uc_trace_experiment(
+    *,
+    experiment_name: str,
+    table_prefix: str,
+    environ: Mapping[str, str] | None = None,
+    mlflow_module=None,
+):
+    """Bind an explicitly named experiment to a modern Unity Catalog OTel location."""
+    if not experiment_name.strip() or not table_prefix.strip():
+        raise ValueError("experiment_name and table_prefix must be non-empty")
+    preflight = preflight_uc_trace_destination(environ=environ)
+    if not preflight.enabled:
+        return None
+    if preflight.missing:
+        missing = ", ".join(preflight.missing)
+        raise RuntimeError(f"UC OTel tracing is enabled but required configuration is missing: {missing}")
+
+    mlflow = mlflow_module or importlib.import_module("mlflow")
+    location = mlflow.entities.trace_location.UnityCatalog(
+        catalog_name=preflight.catalog_name,
+        schema_name=preflight.schema_name,
+        table_prefix=table_prefix,
+    )
+    # Remove the schema-level compatibility destination configured on import.
+    # An experiment-bound UnityCatalog location creates and owns its OTel tables.
+    mlflow.tracing.reset()
+    return mlflow.set_experiment(experiment_name=experiment_name, trace_location=location)
 
 
 @dataclass(frozen=True)
