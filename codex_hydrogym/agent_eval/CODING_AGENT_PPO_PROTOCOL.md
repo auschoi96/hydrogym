@@ -63,3 +63,24 @@ held-out fold.
 The AI Runtime MLflow run must contain the frozen protocol, corpus fingerprint, pre-PPO and post-PPO records, PPO
 metrics, source-snapshot patch records, summary, and the trained LoRA adapter. The persistent Databricks Job and
 reviewable control notebook are recorded in `HANDOFF.md` and `STATUS_REPORT.md` after launch and completion.
+
+## Optional training-task screening
+
+Difficulty screening is opt-in. When enabled, the default is 30 sampled base-policy trials per training task
+and inclusive selection between the measured 25th and 75th percentiles of **mean graded executable reward** (the
+same reward optimized by PPO), with a minimum of two selected tasks. The quantile policy avoids presenting an
+absolute, uncalibrated solve-rate band as a difficulty boundary; the trial count is deliberately disclosed because
+it costs 30 × 12 = 360 additional screening rollouts, 1.875× (approximately 1.9×) the 24 × 8 = 192
+training-rollout budget. The screen artifact records the bounded-reward standard-error upper bound
+(`1.5 / sqrt(trials)`) for every task and the selected set. A zero-variance measured-reward distribution,
+including uniformly all-zero or all-one rates, provides no evidence of a tractable band and is rejected. If the
+distribution is degenerate or the minimum is not met, the run writes both the screen and baseline artifacts and
+fails loudly rather than silently training on a fallback set.
+
+## PPO reward retention and signal-density accounting
+
+All evaluated policy outputs, including execution timeouts, remain in PPO. The verifier currently measures the
+policy-generated expression and verifier work under one subprocess timeout, so it cannot attribute a timeout to
+infrastructure rather than policy computation. Masking that ambiguous status would create a reward-hacking channel.
+Signal-density metrics are accumulated only for batches that actually invoke the PPO optimizer; skipped attempts
+are reported separately and do not enter either side of the cumulative dead-update fraction.
