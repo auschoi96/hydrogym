@@ -60,14 +60,87 @@ PPO made the agent **worse**. `HANDOFF.md:19` already said this plainly:
    code-repair tasks. It is a different question, on a non-fluid task. The
    substitution was never authorized and is the clearest single piece of
    evidence of scope drift.
-2. **The result may be uninterpretable.** It ran on a harness in which a
-   cross-vendor review later found a fatal wiring bug, a screening gate that
-   can hand PPO an all-zero-reward task pool, and a timeout path that masked
-   slow policy outputs out of training. Under investigation
-   (`ppo-result-artifact-check`). Also open: whether a **1/12 baseline has any
-   power at all** to detect improvement across 12 held-out tasks — if not, the
-   evaluation design cannot answer its own question regardless of harness
-   quality.
+2. **RESOLVED 2026-08-29 — the run is a VALID FINDING, but the headline number
+   is statistically vacuous.** See §2.1a.
+
+### 2.1a Forensic verdict on the PPO negative result
+
+The worry was that the run executed on a defective harness (a fatal wiring
+bug, a screening gate that can hand PPO an all-zero-reward pool, a timeout
+path that masked slow policy outputs out of training) and was therefore an
+artifact rather than a finding. **That worry is refuted.** The defective code
+did not exist when the run executed.
+
+Verified directly with `git log --all -S`, not taken on a worker's word:
+
+| Symbol | First enters git | vs. run end (2026-08-27 21:14 UTC) |
+|---|---|---|
+| `_INFRASTRUCTURE_FAILURE_STATUSES` | `6578ec6` 2026-08-29 17:56 | +2 days |
+| `select_tasks_by_solve_rate_quantile` | `df738cb` 2026-08-29 18:22 | +2 days |
+| `masked_ppo_step` | `df738cb` 2026-08-29 18:22 | +2 days |
+
+All three live only on unmerged `polly/ppo-signal-density*` branches. They
+cannot have affected a run that finished two days earlier. Consequence: the
+PR #7 defects and their fixes are **forward-looking only** — they gate the
+*next* code-repair run and say nothing about this one.
+
+What the run actually executed: untracked working-tree code on top of commit
+`d708dd0` (which contains **no** `codex_hydrogym/` directory at all — verified
+by `git ls-tree`). `dirty: true, diff_status: clean` in the launch
+`git_state.json` therefore means untracked files, not a modified tracked tree.
+Three independent signatures pin the executed source to `6b256b2`-era code:
+the run's logged `protocol_sha256` matches
+`git show 6b256b2:.../CODING_AGENT_PPO_PROTOCOL.md`; the run logs
+`coding_ppo.trl_running_moments_tensor_compat`, a param only that era emits;
+and the fixed code's screening params are absent from the run. The byte-exact
+tree is unrecoverable — it was never committed. That is a real gap in the
+record, and the reason it is not fatal is that the defects' source provably
+did not exist anywhere in history until two days later.
+
+From the run's own telemetry: **0** rollouts with status `execution_timeout`,
+**0/24** dead updates, reward spread `−1.25 … +1.25` present in every batch,
+`objective_kl` 0.003 → 2.84, and full repairs occurring in updates 3, 4 and 7.
+PPO had real signal. The "nothing to learn from" scenario did not occur.
+
+**But the headline number must be retired.** Exact binomial arithmetic,
+reproduced locally against `scipy` at n=12, p₀=1/12:
+
+```
+P(X=0 | p0)   = 0.3520   <-- the observed "0/12 regression"
+P(X>=2 | p0)  = 0.2640   <-- even a DOUBLING is 26% likely under the null
+P(X>=3 | p0)  = 0.0720
+P(X>=4 | p0)  = 0.0138
+Fisher [[1,11],[0,12]] two-sided p = 1.0
+```
+
+The observed "regression" to 0/12 is the **single most likely outcome of no
+change at all** (35%). The only exact one-sided levels available are α≈0.072
+(reject at ≥3/12) or α≈0.014 (reject at ≥4/12). Power to detect a genuine
+tripling of the repair rate is 0.609 at the looser level and 0.351 at the
+stricter one. **The exact-repair endpoint cannot answer its own question in
+either direction.** A 2/12 or 3/12 "improvement" would have been equally
+uncitable.
+
+Corpus size needed before the code-repair endpoint can carry a claim: **31
+held-out tasks** for 80% power to detect a tripling, one-sided α=0.05, when
+the 1/12 baseline is treated as fixed (reject at ≥6/31, power 0.824). If both
+arms are estimated from the same small corpus, roughly double that. Either
+way the current corpus of 12 is short by 2.5–5×.
+
+The degradation signal that *is* real lives in the secondary metric: hidden
+cases 15/36 → 7/36, 4 tasks degraded / 0 improved / 8 tied. Paired sign test
+one-sided p = 0.0625; unpaired Fisher one-sided p = 0.0360, two-sided
+p = 0.0721 — all three reproduced locally. Nominally significant, unadjusted
+for two-metric multiplicity, so: **modest real evidence of harm, not a clean
+result.** Case-level McNemar is not identifiable because `case_records` carry
+no case IDs. The policy's post-update failure mode is mostly syntactic
+collapse (5 train rollouts ended `syntax_error`), which is itself consistent
+with real, harmful policy movement rather than a no-op.
+
+**How to cite this run, precisely:** PPO on a 0.5B model over 192 rollouts
+moved the policy and moved it the wrong way on partial credit. It is not
+evidence that RL cannot help a coding agent, and the 1/12 → 0/12 figure must
+not be quoted as evidence of harm.
 
 ### 2.2 Fixed-controller fluid replication — COMPLETED, POSITIVE
 
@@ -256,3 +329,23 @@ One thing, in this order, and nothing else until it is done:
 
 A negative or null fluid result is a completely acceptable deliverable and is
 worth more than another audit. Stop building apparatus.
+
+### What §2.1a changes about priority
+
+The code-repair PPO lane is now **doubly deprioritized**, on two independent
+grounds:
+
+- It answers the inverse question (RL trains a coding agent) rather than the
+  goal (an agent harness improves RL), on a non-fluid task.
+- Its evaluation endpoint is unpowered at n=12 and needs a **31–60 task
+  held-out corpus** before it can carry any claim in either direction. That is
+  a corpus-construction project, not a code fix.
+
+So the PR #7 screening/masking fixes are correct but **not on the critical
+path** — they harden a lane whose measurement instrument is the binding
+constraint. Land them if cheap; do not queue more work behind them.
+
+The fluid lane has no such problem: `hydrogym.jax.envs.kolmogorov` steps on
+CPU today, and a continuous control metric (normalized TKE reduction at
+matched actuation cost) does not suffer the discrete floor effect that makes
+1/12 unmeasurable.
