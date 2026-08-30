@@ -148,3 +148,6 @@ node_modules/
 .isaac/
 .polly/
 !codex_hydrogym/notebooks/artifacts/*.whl
+
+# agent scratch workspace (sub-agents cannot write outside the repo root)
+.scratch/

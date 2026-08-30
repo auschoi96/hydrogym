@@ -186,6 +186,50 @@ honest version of piece 2 is one file and one baseline run — not 10,300 lines.
 
 ---
 
+### The worker environment contract (read this before you run any script)
+
+Six sub-agent sessions died with "process ended without response" and were
+misattributed to heavy compute or a bad model. The real cause is
+environmental, and it is now verified with shell commands:
+
+1. **`/tmp` is not writable.** A worker's `sys_os_write` to `/tmp/foo.py`
+   returns `Access to '/private/tmp/foo.py' is blocked: path is outside the
+   environment root '/Users/austin.choi/PycharmProjects2/hydrogym'`. Workers
+   silently fall back to a shell heredoc into `/tmp`, which sets up failure 2.
+2. **`hydrogym` is not pip-installed.** `pip show hydrogym` reports
+   `Package(s) not found`. The package resolves *only* through the implicit
+   `sys.path[0]` when cwd is the repo root. A script sitting in `/tmp` dies on
+   `ModuleNotFoundError: No module named 'hydrogym'`. This is exactly what
+   killed the first two fluid-PPO attempts, before either ran a single step.
+3. **Bare `python` is the wrong interpreter.** On PATH it resolves to
+   `/Users/austin.choi/PycharmProjects2/omniagent/.venv/bin/python`, then
+   `/opt/anaconda3/bin/python`. Neither has `jax` or `hydrogym`.
+
+Fix applied: `.scratch/` now exists at the repo root and is gitignored, giving
+agents a legal in-root scratch location. The contract for every command is:
+
+```
+cd /Users/austin.choi/PycharmProjects2/hydrogym && ./.venv/bin/python .scratch/<script>.py
+```
+
+Verified working env construction (CPU only, `[CpuDevice(id=0)]`):
+
+```python
+from hydrogym.jax.envs.kolmogorov import KolmogorovFlow
+env = KolmogorovFlow(
+    env_config={'grid_size': (16, 16), 'obs_size': 4, 'max_episode_steps': 2},
+    flow_config={'grid_size': (16, 16), 'obs_size': 4},
+)
+# reset -> obs shape (16,); one step -> reward about -2.0585186
+```
+
+The general lesson is worth more than the fix: a worker that dies without a
+report is usually blocked on the environment, not on the task. Mine its
+conversation history for the last tool error before assuming the model or the
+compute budget was at fault.
+
+---
+
 ## 6. Open decisions for the human
 
 1. **Judge name** — `critic_quality` vs `fluid_reward_plausibility`.
@@ -205,7 +249,7 @@ honest version of piece 2 is one file and one baseline run — not 10,300 lines.
 
 One thing, in this order, and nothing else until it is done:
 
-1. Determine what one honest fluid PPO run costs (in flight: `fluid-ppo-smoke`).
+1. Determine what one honest fluid PPO run costs (in flight: `fluid-ppo-smoke2`).
 2. Run it. Preregister the scale-independent metric and the decision rule
    **before** training and never touch them afterwards.
 3. Only then build piece 3 — the coding agent that authors the reward.
