@@ -1,60 +1,48 @@
-"""Null and positive control runs over the project's paired-delta instrument.
+"""Seeded calibration of the preregistered group-clustered interval rule.
 
-The statistic under test is reused, not reimplemented and not mocked:
+This validates only the decision rule preregistered at
+``agent_eval/AGENT_REVISION_PROTOCOL.md:45``: a group-clustered 95% interval
+wholly above zero. It does not validate the notebook's currently executed bare
+mean-sign decision (``notebooks/coding_agent_memalign_proof.py:368-376``).
 
-- per-group paired deltas follow the frozen MemAlign protocol expression
-  ``deltas[group] = arm_b_score - arm_a_score`` and ``paired_mean_delta`` as
-  computed in ``codex_hydrogym/notebooks/coding_agent_memalign_proof.py``
-  (that notebook executes at import time on Databricks, so its pairing
-  expression is reproduced verbatim here rather than imported);
-- the group-clustered 95% interval is ``_mean_ci`` from
-  ``codex_hydrogym.gate0.ensemble_diagnostic``, the existing clustered
-  mean-interval statistic the project already uses for per-cluster effects;
-- the 95% t critical for ten clusters (df=9) is the frozen
-  ``seed_cluster_t_critical_95`` carried by
-  ``codex_hydrogym.gate0.ensemble_replication.EnsembleReplicationSpec``;
-- the decision rule is the protocol's: the interval must be wholly above
-  zero for an effect (``AGENT_REVISION_PROTOCOL.md``: "the group-clustered
-  95% interval ... is wholly above zero");
-- rank correlation reuses the project's average-rank Spearman helpers in
-  ``codex_hydrogym.genai.metrics``.
-
-Arms: the null arm draws two groups from the SAME quality tier (differing
-only by random seed); the positive arms draw groups from deliberately
-different tiers. A correct instrument reports no effect on the null arm and
-an effect, with recovered ordering, on the positive arms.
+The stochastic DGP is implemented by :class:`SeededNoisyTierJudge`: independent
+``Normal(0, sigma**2)`` noise is added to the known tier mean. Every arm uses
+``CALIBRATION_REPLICATES`` explicit consecutive seeds. The default sigma,
+replicate count, monotonicity tolerance, and ordering threshold are fixed below
+and are not selected from results.
 """
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from statistics import fmean
 from typing import Any, Mapping, Protocol
 
 from codex_hydrogym.agent_eval.instrument_validation.generator import (
     QUALITY_TIERS,
+    TIER_BASE_SCORE,
     RewardCandidate,
     RewardCandidateGenerator,
 )
 from codex_hydrogym.agent_eval.instrument_validation.judges import (
     CeilingPinnedJudge,
     DeterministicTierJudge,
+    SeededNoisyTierJudge,
 )
 from codex_hydrogym.gate0.ensemble_diagnostic import _mean_ci
 from codex_hydrogym.gate0.ensemble_replication import EnsembleReplicationSpec
 from codex_hydrogym.genai.metrics import _average_ranks, _pearson
 
-GROUP_CLUSTERS: int = 10
-T_CRITICAL_95_DF9: float = EnsembleReplicationSpec.seed_cluster_t_critical_95
-NULL_ARM_TIER: int = 2
-POSITIVE_ARM_TIER_PAIRS: tuple[tuple[int, int], ...] = (
-    (0, 2),
-    (1, 3),
-    (2, 4),
-    (0, 1),
-    (3, 4),
-)
-SEED_NAMESPACE: int = 20260826
+GROUP_CLUSTERS = 10
+T_CRITICAL_95_DF9 = EnsembleReplicationSpec.seed_cluster_t_critical_95
+NULL_ARM_TIER = 2
+POSITIVE_ARM_TIER_PAIRS = ((0, 1), (1, 3), (2, 4), (3, 4))
+SEED_NAMESPACE = 20260826
+CALIBRATION_REPLICATES = 500
+NOISE_SIGMA = 1.0
+MONOTONICITY_TOLERANCE = 0.10
+MIN_MEAN_NOISY_SPEARMAN = 0.90
 DECISION_EFFECT = "effect"
 DECISION_NO_EFFECT = "no_effect"
 
@@ -67,8 +55,6 @@ class Judge(Protocol):
 
 @dataclass(frozen=True)
 class PairedArmResult:
-    """Outcome of one paired control run through the instrument."""
-
     arm_name: str
     control_tier: int
     candidate_tier: int
@@ -77,49 +63,53 @@ class PairedArmResult:
     paired_mean_delta: float
     paired_deltas: Mapping[str, float]
     clustered_interval_95: Mapping[str, float]
+    t_critical_95: float
+    t_degrees_of_freedom: int
     decision: str
-
-    def __post_init__(self) -> None:
-        if not isinstance(self.arm_name, str) or not self.arm_name.strip():
-            raise ValueError("arm_name must be non-empty")
-        if self.control_tier not in QUALITY_TIERS or self.candidate_tier not in QUALITY_TIERS:
-            raise ValueError("arm tiers must lie on the constructed quality ladder")
-        if self.group_clusters < 2:
-            raise ValueError("a paired arm needs at least two group clusters")
-        if len(self.paired_deltas) != self.group_clusters:
-            raise ValueError("paired deltas must cover exactly the group clusters")
-        if self.decision not in {DECISION_EFFECT, DECISION_NO_EFFECT}:
-            raise ValueError("decision must be one of effect / no_effect")
 
 
 @dataclass(frozen=True)
 class OrderingResult:
-    """Recovered ordering of tier-mean judge scores against the known ladder."""
-
     tier_scores: Mapping[int, float]
     spearman: float
-
-    def __post_init__(self) -> None:
-        if set(self.tier_scores) != set(QUALITY_TIERS):
-            raise ValueError("ordering must cover every constructed tier")
 
 
 @dataclass(frozen=True)
 class ValidationResult:
-    """Full instrument-validation run: one null arm, positive arms, ordering."""
-
     null_arm: PairedArmResult
     positive_arms: tuple[PairedArmResult, ...]
     ordering: OrderingResult
     judge_name: str
 
-    def __post_init__(self) -> None:
-        if self.null_arm.control_tier != self.null_arm.candidate_tier:
-            raise ValueError("the null arm must draw both groups from one tier")
-        if not self.positive_arms:
-            raise ValueError("at least one positive arm is required")
-        if any(arm.control_tier == arm.candidate_tier for arm in self.positive_arms):
-            raise ValueError("positive arms must pair deliberately different tiers")
+
+@dataclass(frozen=True)
+class TierPairCalibration:
+    control_tier: int
+    candidate_tier: int
+    true_delta: float
+    coverage: float
+    detection_rate: float
+
+
+@dataclass(frozen=True)
+class CalibrationResult:
+    replicates: int
+    seeds: tuple[int, ...]
+    sigma: float
+    null_false_positive_rate: float
+    null_false_positive_interval_95: Mapping[str, float]
+    positive_coverage: float
+    positive_coverage_interval_95: Mapping[str, float]
+    positive_detection_rate: float
+    tier_pairs: tuple[TierPairCalibration, ...]
+    mean_ordering_spearman: float
+
+
+def _validate_groups(groups: int) -> None:
+    # The frozen source constant is 2.262157..., documented specifically as
+    # ten clusters / df=9 at ensemble_replication.py:154-157.
+    if groups != GROUP_CLUSTERS:
+        raise ValueError("groups must be exactly 10: the frozen t critical is for df=9")
 
 
 def _paired_arm(
@@ -132,19 +122,23 @@ def _paired_arm(
     seed_b: int,
     groups: int,
 ) -> PairedArmResult:
+    _validate_groups(groups)
     control = RewardCandidateGenerator(tier=control_tier, groups=groups, seed=seed_a).generate()
     candidate = RewardCandidateGenerator(tier=candidate_tier, groups=groups, seed=seed_b).generate()
     control_by_group = {item.group_id: item for item in control}
     candidate_by_group = {item.group_id: item for item in candidate}
     if control_by_group.keys() != candidate_by_group.keys():
         raise AssertionError("paired arms must expose the same group clusters")
-    # Frozen protocol expression: paired delta per group, then the clustered mean.
-    deltas = {
-        group_id: judge.score(candidate_by_group[group_id]) - judge.score(control_by_group[group_id])
-        for group_id in control_by_group
-    }
+    deltas = {}
+    for group_id in control_by_group:
+        # Frozen notebook expression (lines 355-364), with identical treatment
+        # labels. test_paired_delta_expression_is_pinned_to_notebook AST-pins it.
+        by_treatment = {
+            "unchanged": judge.score(control_by_group[group_id]),
+            "base_revision": judge.score(candidate_by_group[group_id]),
+        }
+        deltas[group_id] = by_treatment["base_revision"] - by_treatment["unchanged"]
     interval = _mean_ci(tuple(deltas.values()), T_CRITICAL_95_DF9)
-    decision = DECISION_EFFECT if interval["lower"] > 0.0 else DECISION_NO_EFFECT
     return PairedArmResult(
         arm_name=arm_name,
         control_tier=control_tier,
@@ -152,9 +146,11 @@ def _paired_arm(
         group_clusters=groups,
         judge_name=judge.name,
         paired_mean_delta=fmean(deltas.values()),
-        paired_deltas=dict(deltas),
+        paired_deltas=deltas,
         clustered_interval_95=dict(interval),
-        decision=decision,
+        t_critical_95=T_CRITICAL_95_DF9,
+        t_degrees_of_freedom=groups - 1,
+        decision=DECISION_EFFECT if interval["lower"] > 0 else DECISION_NO_EFFECT,
     )
 
 
@@ -162,30 +158,27 @@ def _ordering(judge: Judge, *, seed: int, groups: int) -> OrderingResult:
     tier_scores = {
         tier: fmean(
             judge.score(candidate)
-            for candidate in RewardCandidateGenerator(tier=tier, groups=groups, seed=seed).generate()
+            for candidate in RewardCandidateGenerator(tier=tier, groups=groups, seed=seed + tier).generate()
         )
         for tier in QUALITY_TIERS
     }
-    tiers = [float(tier) for tier in QUALITY_TIERS]
-    scores = [tier_scores[tier] for tier in QUALITY_TIERS]
-    spearman = _pearson(_average_ranks(tiers), _average_ranks(scores))
-    if spearman is None:
-        raise AssertionError("ordering spearman is undefined; scores must vary with tier")
-    return OrderingResult(tier_scores=tier_scores, spearman=spearman)
+    ranks = _pearson(
+        _average_ranks([float(tier) for tier in QUALITY_TIERS]),
+        _average_ranks([tier_scores[tier] for tier in QUALITY_TIERS]),
+    )
+    if ranks is None:
+        raise AssertionError("ordering spearman is undefined")
+    return OrderingResult(tier_scores=tier_scores, spearman=ranks)
 
 
 def run_validation(
-    judge: Judge | None = None,
-    *,
-    seed: int = SEED_NAMESPACE,
-    groups: int = GROUP_CLUSTERS,
+    judge: Judge | None = None, *, seed: int = SEED_NAMESPACE, groups: int = GROUP_CLUSTERS
 ) -> ValidationResult:
-    """Run the null arm, all positive arms, and the ordering check."""
-    judge = judge or DeterministicTierJudge()
-    if not isinstance(groups, int) or groups < 2:
-        raise ValueError("groups must be an int of at least two clusters")
+    """Run one diagnostic replicate; calibration claims use ``run_calibration``."""
+    _validate_groups(groups)
     if not isinstance(seed, int):
         raise TypeError("seed must be an int")
+    judge = judge or DeterministicTierJudge()
     null_arm = _paired_arm(
         arm_name="null",
         control_tier=NULL_ARM_TIER,
@@ -197,34 +190,90 @@ def run_validation(
     )
     positive_arms = tuple(
         _paired_arm(
-            arm_name=f"positive-{control_tier}-{candidate_tier}",
-            control_tier=control_tier,
-            candidate_tier=candidate_tier,
+            arm_name=f"positive-{a}-{b}",
+            control_tier=a,
+            candidate_tier=b,
             judge=judge,
             seed_a=seed + 10 + 2 * index,
-            seed_b=seed + 10 + 2 * index + 1,
+            seed_b=seed + 11 + 2 * index,
             groups=groups,
         )
-        for index, (control_tier, candidate_tier) in enumerate(POSITIVE_ARM_TIER_PAIRS)
+        for index, (a, b) in enumerate(POSITIVE_ARM_TIER_PAIRS)
     )
-    ordering = _ordering(judge, seed=seed + 100, groups=groups)
-    return ValidationResult(
-        null_arm=null_arm,
-        positive_arms=positive_arms,
-        ordering=ordering,
-        judge_name=judge.name,
+    return ValidationResult(null_arm, positive_arms, _ordering(judge, seed=seed + 100, groups=groups), judge.name)
+
+
+def _wilson_interval(successes: int, trials: int) -> dict[str, float]:
+    z = 1.959963984540054
+    rate = successes / trials
+    denominator = 1 + z * z / trials
+    center = (rate + z * z / (2 * trials)) / denominator
+    radius = z * math.sqrt(rate * (1 - rate) / trials + z * z / (4 * trials * trials)) / denominator
+    return {"lower": center - radius, "upper": center + radius}
+
+
+def run_calibration(
+    *, replicates: int = CALIBRATION_REPLICATES, seed: int = SEED_NAMESPACE, sigma: float = NOISE_SIGMA
+) -> CalibrationResult:
+    """Measure null FPR, positive coverage/detection, sensitivity, and ordering."""
+    if replicates < 200:
+        raise ValueError("calibration requires at least 200 seeded replicates")
+    seeds = tuple(seed + replicate for replicate in range(replicates))
+    null_false_positives = 0
+    coverages = {pair: 0 for pair in POSITIVE_ARM_TIER_PAIRS}
+    detections = {pair: 0 for pair in POSITIVE_ARM_TIER_PAIRS}
+    spearman = []
+    for replicate_seed in seeds:
+        result = run_validation(SeededNoisyTierJudge(seed=replicate_seed, sigma=sigma), seed=replicate_seed)
+        all_arms = (result.null_arm, *result.positive_arms)
+        if any(arm.clustered_interval_95["lower"] >= arm.clustered_interval_95["upper"] for arm in all_arms):
+            raise AssertionError("every stochastic interval must have positive width")
+        null_false_positives += result.null_arm.decision == DECISION_EFFECT
+        for arm in result.positive_arms:
+            pair = (arm.control_tier, arm.candidate_tier)
+            true_delta = TIER_BASE_SCORE[pair[1]] - TIER_BASE_SCORE[pair[0]]
+            interval = arm.clustered_interval_95
+            coverages[pair] += interval["lower"] <= true_delta <= interval["upper"]
+            detections[pair] += arm.decision == DECISION_EFFECT
+        spearman.append(result.ordering.spearman)
+    pair_results = tuple(
+        TierPairCalibration(
+            a,
+            b,
+            TIER_BASE_SCORE[b] - TIER_BASE_SCORE[a],
+            coverages[(a, b)] / replicates,
+            detections[(a, b)] / replicates,
+        )
+        for a, b in POSITIVE_ARM_TIER_PAIRS
+    )
+    # Pair-level sensitivity may vary by Monte Carlo error. A fixed 10-point
+    # tolerance permits that error but still requires larger gaps to detect at
+    # least as often as every smaller gap.
+    for small in pair_results:
+        for large in pair_results:
+            if large.true_delta > small.true_delta:
+                if large.detection_rate + MONOTONICITY_TOLERANCE < small.detection_rate:
+                    raise AssertionError("detection sensitivity is not monotone within tolerance")
+    mean_spearman = fmean(spearman)
+    if mean_spearman < MIN_MEAN_NOISY_SPEARMAN:
+        raise AssertionError("noisy ordering fell below the fixed Spearman tolerance")
+    total_positive = replicates * len(pair_results)
+    return CalibrationResult(
+        replicates=replicates,
+        seeds=seeds,
+        sigma=float(sigma),
+        null_false_positive_rate=null_false_positives / replicates,
+        null_false_positive_interval_95=_wilson_interval(null_false_positives, replicates),
+        positive_coverage=sum(coverages.values()) / total_positive,
+        positive_coverage_interval_95=_wilson_interval(sum(coverages.values()), total_positive),
+        positive_detection_rate=sum(detections.values()) / total_positive,
+        tier_pairs=pair_results,
+        mean_ordering_spearman=mean_spearman,
     )
 
 
 def run_ceiling_pinned_reference(*, seed: int = SEED_NAMESPACE, groups: int = GROUP_CLUSTERS) -> PairedArmResult:
-    """Reference: the ceiling-pinned judge against a real tier gap.
-
-    Documents the current production symptom (every paired delta exactly 0.0)
-    and proves the statistic reports no effect when the judge carries no
-    signal, even though the underlying tiers differ as much as possible.
-    """
-    if not isinstance(groups, int) or groups < 2:
-        raise ValueError("groups must be an int of at least two clusters")
+    """Dead-judge reference, explicitly not a stochastic null calibration."""
     return _paired_arm(
         arm_name="ceiling-pinned-reference",
         control_tier=0,
@@ -236,26 +285,18 @@ def run_ceiling_pinned_reference(*, seed: int = SEED_NAMESPACE, groups: int = GR
     )
 
 
-def summarize(result: ValidationResult) -> dict[str, Any]:
-    """Human-readable summary of a validation run (for reports, not claims)."""
+def summarize(result: CalibrationResult) -> dict[str, Any]:
+    """Return the measured calibration artifact in JSON-compatible form."""
     return {
-        "judge_name": result.judge_name,
-        "null_arm": {
-            "tier": result.null_arm.control_tier,
-            "paired_mean_delta": result.null_arm.paired_mean_delta,
-            "clustered_interval_95": dict(result.null_arm.clustered_interval_95),
-            "decision": result.null_arm.decision,
-        },
-        "positive_arms": [
-            {
-                "control_tier": arm.control_tier,
-                "candidate_tier": arm.candidate_tier,
-                "paired_mean_delta": arm.paired_mean_delta,
-                "clustered_interval_95": dict(arm.clustered_interval_95),
-                "decision": arm.decision,
-            }
-            for arm in result.positive_arms
-        ],
-        "ordering_spearman": result.ordering.spearman,
-        "tier_scores": dict(result.ordering.tier_scores),
+        "replicates": result.replicates,
+        "seed_first": result.seeds[0],
+        "seed_last": result.seeds[-1],
+        "sigma": result.sigma,
+        "null_false_positive_rate": result.null_false_positive_rate,
+        "null_false_positive_interval_95": dict(result.null_false_positive_interval_95),
+        "positive_coverage": result.positive_coverage,
+        "positive_coverage_interval_95": dict(result.positive_coverage_interval_95),
+        "positive_detection_rate": result.positive_detection_rate,
+        "tier_pairs": [vars(item) for item in result.tier_pairs],
+        "mean_ordering_spearman": result.mean_ordering_spearman,
     }

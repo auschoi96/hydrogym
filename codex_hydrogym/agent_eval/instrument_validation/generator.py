@@ -132,17 +132,19 @@ class RewardCandidateGenerator:
         self.seed = seed
         self._rng = random.Random(seed)
 
-    def _render(self, cluster_index: int) -> str:
-        scenario = self._rng.choice(SCENARIO_LINES)
-        template = self._rng.choice(_TIER_TEMPLATES[self.tier])
-        flavor = self._rng.choice(_FLAVOR_LINES)
+    def _render(self, phrase_seed: int) -> str:
+        """Render from the seed stored on the resulting candidate."""
+        rng = random.Random(phrase_seed)
+        scenario = rng.choice(SCENARIO_LINES)
+        template = rng.choice(_TIER_TEMPLATES[self.tier])
+        flavor = rng.choice(_FLAVOR_LINES)
         return f"{template} {scenario} {flavor}"
 
     def generate(self) -> tuple[RewardCandidate, ...]:
         candidates = []
         for cluster_index in range(self.groups):
             phrase_seed = self._rng.randrange(0, 2**31 - 1)
-            text = self._render(cluster_index)
+            text = self._render(phrase_seed)
             if not _contains_only_own_stems(text, self.tier):
                 raise AssertionError("generated text leaked a foreign tier signature")
             candidates.append(

@@ -1,19 +1,8 @@
-"""Deterministic judge stubs for instrument validation.
-
-The LLM judge is mocked with a deterministic stub, never the statistic under
-test. Assumption, stated explicitly: a candidate's score is a pure function of
-its constructed quality tier, monotone non-decreasing in the known tier, with
-zero within-tier variance. The generator emits tier-exclusive signature
-phrases, and the stub reads exactly those phrases off the candidate text, so
-the stub is exactly monotone: any tier-``k`` candidate scores strictly above
-any tier-``j < k`` candidate, and any two same-tier candidates score
-identically regardless of their random seeds. A stochastic LLM judge would add
-within-tier noise; this validation deliberately measures the paired-delta
-statistic pipeline under a noise-free oracle so the null arm has a true delta
-of exactly zero.
-"""
+"""Judge stubs for paired-delta instrument validation."""
 
 from __future__ import annotations
+
+import random
 
 from codex_hydrogym.agent_eval.instrument_validation.generator import (
     QUALITY_TIERS,
@@ -23,29 +12,54 @@ from codex_hydrogym.agent_eval.instrument_validation.generator import (
 )
 
 
+def _resolved_tier(candidate: RewardCandidate) -> int:
+    if not isinstance(candidate, RewardCandidate):
+        raise TypeError("score requires a RewardCandidate")
+    matched = [tier for tier in QUALITY_TIERS if all(stem in candidate.text for stem in TIER_SIGNATURES[tier])]
+    if len(matched) != 1 or matched[0] != candidate.tier:
+        raise AssertionError("judge did not resolve exactly the constructed tier")
+    return matched[0]
+
+
 class DeterministicTierJudge:
-    """Exact-monotone stub judge on the project's 1-5 critic scale."""
+    """Exact-monotone diagnostic stub; not calibration evidence."""
 
     name = "deterministic_tier_stub"
 
     def score(self, candidate: RewardCandidate) -> float:
-        if not isinstance(candidate, RewardCandidate):
-            raise TypeError("score requires a RewardCandidate")
-        matched = [tier for tier in QUALITY_TIERS if all(stem in candidate.text for stem in TIER_SIGNATURES[tier])]
-        if len(matched) != 1 or matched[0] != candidate.tier:
-            raise AssertionError("judge did not resolve exactly the constructed tier")
-        return TIER_BASE_SCORE[matched[0]]
+        return TIER_BASE_SCORE[_resolved_tier(candidate)]
+
+
+class SeededNoisyTierJudge:
+    """Seeded stochastic judge with an explicit data-generating process.
+
+    For candidate ``i`` in tier ``t``, independently generate
+    ``score_i = TIER_BASE_SCORE[t] + epsilon_i`` where
+    ``epsilon_i ~ Normal(0, sigma**2)``. Independence and reproducibility come
+    from a local RNG keyed by the explicit judge seed and candidate seed. The
+    default ``sigma=1.0`` is preregistered in the harness constants rather than
+    selected from experiment output. Scores are intentionally not clipped:
+    clipping would alter the stated normal DGP and tier mean differences.
+    """
+
+    name = "seeded_noisy_tier_stub"
+
+    def __init__(self, *, seed: int, sigma: float) -> None:
+        if not isinstance(seed, int):
+            raise TypeError("seed must be an int")
+        if not isinstance(sigma, (float, int)) or sigma <= 0:
+            raise ValueError("sigma must be positive")
+        self.seed = seed
+        self.sigma = float(sigma)
+
+    def score(self, candidate: RewardCandidate) -> float:
+        tier = _resolved_tier(candidate)
+        rng = random.Random(f"instrument-validation:{self.seed}:{candidate.seed}")
+        return TIER_BASE_SCORE[tier] + rng.gauss(0.0, self.sigma)
 
 
 class CeilingPinnedJudge:
-    """Reference replica of the current production symptom.
-
-    Every candidate scores the ceiling value 5.0, which is exactly how the
-    production judge behaves today (5.0 -> 5.0, 0.9 -> 0.9, 1.0 -> 1.0). This
-    stub is deliberately NOT monotone in the quality tier; it exists only to
-    show what the paired-delta instrument reports when the judge carries no
-    signal.
-    """
+    """Dead-judge reference: all candidates receive the same ceiling score."""
 
     name = "ceiling_pinned_stub"
 
