@@ -4,6 +4,7 @@
 **Repository:** `/Users/austin.choi/PycharmProjects2/hydrogym`  
 **Primary status document:** `codex_hydrogym/STATUS_REPORT.md`  
 **Original Codex session referenced by the user:** `01a02f5d-8563-7db0-b19c-88edc7aca608`
+**LATEST REVIEW (read this first):** `codex_hydrogym/PROGRESS_REVIEW_2026-08-29.md` — current honest state, the apparatus-vs-experiment ratio, and reusable findings.  
 
 ## Read this first
 

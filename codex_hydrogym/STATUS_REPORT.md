@@ -3,6 +3,8 @@
 
 # codex_hydrogym — Current Status and Evidence-Gate Report
 
+**LATEST REVIEW (read this first):** `codex_hydrogym/PROGRESS_REVIEW_2026-08-29.md` — current honest state, the apparatus-vs-experiment ratio, and reusable findings.
+
 **Status date:** August 27, 2026
 
 **Workspace profile:** `dais-demo`
