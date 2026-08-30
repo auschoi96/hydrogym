@@ -93,7 +93,7 @@ gymnax = { version = "*", optional = true }
 tree-math = { version = "*", optional = true }
 distrax = { version = "*", optional = true }
 matplotlib = { version = "*", optional = true }
-mlflow = { version = ">=3.11.1,<4", optional = true }
+mlflow = { version = ">=3.14,<4", optional = true }
 openai = { version = ">=1.68,<3", optional = true }
 dspy = { version = ">=3.0,<4", optional = true }
 gepa = { version = ">=0.0.26,<1", optional = true }

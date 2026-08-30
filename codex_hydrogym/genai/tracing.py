@@ -2,18 +2,15 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import importlib
+import json
+import os
 import time
+from dataclasses import dataclass
 from typing import Any, Mapping
 
 from codex_hydrogym import PROJECT_LABEL
-from codex_hydrogym.genai.contracts import (
-    AGENT_FEEDBACK_SCHEMA_VERSION,
-    AgentFeedback,
-    RunBundle,
-    parse_agent_feedback,
-)
+from codex_hydrogym.genai.contracts import AGENT_FEEDBACK_SCHEMA_VERSION, AgentFeedback, RunBundle, parse_agent_feedback
 from codex_hydrogym.genai.harnesses import (
     FeedbackHarness,
     HarnessExecutionError,
@@ -21,6 +18,126 @@ from codex_hydrogym.genai.harnesses import (
     render_feedback_prompt,
     validate_feedback_identity,
 )
+
+UC_TRACING_FLAG = "CODEX_HYDROGYM_ENABLE_UC_TRACING"
+UC_CATALOG_ENV = "MLFLOW_TRACING_UC_CATALOG_NAME"
+UC_SCHEMA_ENV = "MLFLOW_TRACING_UC_SCHEMA_NAME"
+UC_WAREHOUSE_ENV = "MLFLOW_TRACING_SQL_WAREHOUSE_ID"
+DEFAULT_UC_CATALOG = "austin_choi_omni_agent_catalog"
+DEFAULT_UC_SCHEMA = "codex_hydrogym"
+DEFAULT_DATABRICKS_HOST = "https://fevm-austin-choi-omni-agent.cloud.databricks.com"
+
+
+@dataclass(frozen=True)
+class UCTracePreflight:
+    """Offline diagnostic for the inputs needed by a UC trace destination."""
+
+    enabled: bool
+    catalog_name: str | None
+    schema_name: str | None
+    warehouse_id: str | None
+    missing: tuple[str, ...]
+    workspace_host: str | None
+
+    @property
+    def ready(self) -> bool:
+        return self.enabled and not self.missing
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "enabled": self.enabled,
+            "ready": self.ready,
+            "catalog_name": self.catalog_name,
+            "schema_name": self.schema_name,
+            "warehouse_id": self.warehouse_id,
+            "missing": list(self.missing),
+            "workspace_host": self.workspace_host,
+            "network_check": "not performed (diagnostic only)",
+        }
+
+    def report(self) -> str:
+        message = json.dumps(self.as_dict(), sort_keys=True)
+        print(message)
+        return message
+
+
+def _enabled(environ: Mapping[str, str]) -> bool:
+    return environ.get(UC_TRACING_FLAG, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def preflight_uc_trace_destination(*, environ: Mapping[str, str] | None = None) -> UCTracePreflight:
+    """Report UC destination readiness without contacting Databricks or creating tables."""
+    env = os.environ if environ is None else environ
+    enabled = _enabled(env)
+    catalog_name = env.get(UC_CATALOG_ENV, DEFAULT_UC_CATALOG).strip() or None
+    schema_name = env.get(UC_SCHEMA_ENV, DEFAULT_UC_SCHEMA).strip() or None
+    warehouse_id = env.get(UC_WAREHOUSE_ENV, "").strip() or None
+    missing = []
+    if enabled and not catalog_name:
+        missing.append(UC_CATALOG_ENV)
+    if enabled and not schema_name:
+        missing.append(UC_SCHEMA_ENV)
+    if enabled and not warehouse_id:
+        missing.append(UC_WAREHOUSE_ENV)
+    return UCTracePreflight(
+        enabled=enabled,
+        catalog_name=catalog_name,
+        schema_name=schema_name,
+        warehouse_id=warehouse_id,
+        missing=tuple(missing),
+        workspace_host=env.get("DATABRICKS_HOST", DEFAULT_DATABRICKS_HOST),
+    )
+
+
+def configure_uc_trace_destination(*, environ: Mapping[str, str] | None = None, mlflow_module=None):
+    """Configure MLflow's OTel exporter destination when explicitly enabled.
+
+    This is intentionally local/offline at configuration time: MLflow performs any
+    workspace interaction when spans are exported, not while this function runs.
+    """
+    preflight = preflight_uc_trace_destination(environ=environ)
+    if not preflight.enabled:
+        return None
+    if preflight.missing:
+        missing = ", ".join(preflight.missing)
+        raise RuntimeError(f"UC OTel tracing is enabled but required configuration is missing: {missing}")
+
+    mlflow = mlflow_module or importlib.import_module("mlflow")
+    destination = mlflow.tracing.destination
+    location = destination.UCSchemaLocation(preflight.catalog_name, preflight.schema_name)
+    # UCSchemaLocation selects MLflow's OpenTelemetry/Unity Catalog exporter.
+    # set_destination is part of mlflow.tracing, not mlflow.tracing.destination.
+    mlflow.tracing.set_destination(location)
+    return location
+
+
+def configure_uc_trace_experiment(
+    *,
+    experiment_name: str,
+    table_prefix: str,
+    environ: Mapping[str, str] | None = None,
+    mlflow_module=None,
+):
+    """Bind an explicitly named experiment to a modern Unity Catalog OTel location."""
+    if not experiment_name.strip() or not table_prefix.strip():
+        raise ValueError("experiment_name and table_prefix must be non-empty")
+    preflight = preflight_uc_trace_destination(environ=environ)
+    if not preflight.enabled:
+        return None
+    if preflight.missing:
+        missing = ", ".join(preflight.missing)
+        raise RuntimeError(f"UC OTel tracing is enabled but required configuration is missing: {missing}")
+
+    mlflow = mlflow_module or importlib.import_module("mlflow")
+    location = mlflow.entities.trace_location.UnityCatalog(
+        catalog_name=preflight.catalog_name,
+        schema_name=preflight.schema_name,
+        table_prefix=table_prefix,
+    )
+    # Remove the schema-level compatibility destination configured on import.
+    # An experiment-bound UnityCatalog location creates and owns its OTel tables.
+    mlflow.tracing.reset()
+    return mlflow.set_experiment(experiment_name=experiment_name, trace_location=location)
 
 
 @dataclass(frozen=True)
@@ -145,3 +262,7 @@ async def analyze_run_bundle(
         runtime_metadata=raw.metadata,
         trace_id=trace_id,
     )
+
+
+# Configure only when the operator opts in; importing this module remains a genuine no-op.
+configure_uc_trace_destination()
