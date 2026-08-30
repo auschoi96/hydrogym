@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import ast
-from dataclasses import asdict, dataclass
 import hashlib
 import json
 import math
 import os
-from pathlib import Path
 import random
 import subprocess
 import sys
 import time
+from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
 import mlflow
@@ -22,11 +22,67 @@ import yaml
 from codex_hydrogym import PROJECT_LABEL
 from codex_hydrogym.tracking import managed_mlflow_run
 
-
 PROTOCOL_ID = "codex_hydrogym.coding_agent_ppo.v1"
 PROTOCOL_PATH = Path("codex_hydrogym/agent_eval/CODING_AGENT_PPO_PROTOCOL.md")
 PACKAGE_PROTOCOL_PATH = Path("agent_eval/CODING_AGENT_PPO_PROTOCOL.md")
 ARTIFACT_PATH = "codex_hydrogym/coding_agent_ppo_v1"
+
+_INFRASTRUCTURE_FAILURE_STATUSES = frozenset({"execution_timeout", "execution_error"})
+
+
+def signal_density_metrics(evaluations: Sequence[Mapping[str, Any]]) -> dict[str, float]:
+    """Return diagnostics for whether PPO scores can produce a useful update."""
+    rewards = {float(evaluation["reward"]) for evaluation in evaluations}
+    full_repairs = [bool(evaluation["full_repair"]) for evaluation in evaluations]
+    return {
+        "batch_distinct_reward_values": float(len(rewards)),
+        "batch_has_success_and_failure": float(any(full_repairs) and not all(full_repairs)),
+        "batch_is_dead": float(len(rewards) == 1),
+    }
+
+
+def mask_infrastructure_failures(
+    evaluations: Sequence[Mapping[str, Any]], *, enabled: bool
+) -> list[Mapping[str, Any]]:
+    """Remove verifier infrastructure failures, never policy-originated failures."""
+    if not enabled:
+        return list(evaluations)
+    return [
+        evaluation
+        for evaluation in evaluations
+        if str(evaluation["status"]) not in _INFRASTRUCTURE_FAILURE_STATUSES
+    ]
+
+
+def select_tasks_in_solve_rate_band(
+    tasks: Sequence[RepairTask], solve_rates: Mapping[str, float], *, minimum: float, maximum: float
+) -> tuple[RepairTask, ...]:
+    """Keep tasks with inclusive base-policy solve rates in the configured band."""
+    if not 0.0 <= minimum <= maximum <= 1.0:
+        raise ValueError("difficulty screening band must satisfy 0 <= minimum <= maximum <= 1")
+    selected = tuple(task for task in tasks if minimum <= solve_rates[task.task_id] <= maximum)
+    if not selected:
+        raise ValueError("difficulty screening band selected no training tasks")
+    return selected
+
+
+def estimate_base_solve_rates(
+    *, trainer: Any, tokenizer: Any, tasks: Sequence[RepairTask], model_id: str, snapshot_root: Path,
+    corpus_digest: str, generation_batch_size: int, trials: int,
+) -> dict[str, float]:
+    """Estimate base-policy full-repair rates using the normal policy evaluator."""
+    if trials < 1:
+        raise ValueError("difficulty screening trials must be positive")
+    solved = {task.task_id: 0 for task in tasks}
+    for trial in range(trials):
+        records = evaluate_policy(
+            trainer=trainer, tokenizer=tokenizer, tasks=tasks, condition=f"base_screen_{trial}",
+            model_id=model_id, snapshot_root=snapshot_root, corpus_digest=corpus_digest, trace_records=False,
+            generation_batch_size=generation_batch_size, do_sample=True,
+        )
+        for record in records:
+            solved[str(record["task_id"])] += int(bool(record["full_repair"]))
+    return {task_id: solved_count / trials for task_id, solved_count in solved.items()}
 
 
 @dataclass(frozen=True)
@@ -227,7 +283,10 @@ def repair_tasks() -> tuple[RepairTask, ...]:
                 ({"model_calls_complete": True, "result_persisted": True}, "no_op"),
                 ({"model_calls_complete": False, "result_persisted": False}, "model_calls"),
             ),
-            '"finalize_only" if model_calls_complete and not result_persisted else ("no_op" if result_persisted else "model_calls")',
+            (
+                '"finalize_only" if model_calls_complete and not result_persisted '
+                'else ("no_op" if result_persisted else "model_calls")'
+            ),
         ),
         RepairTask(
             "train_exact_harness_arms",
@@ -269,7 +328,16 @@ def repair_tasks() -> tuple[RepairTask, ...]:
             _cases(
                 ({"assessments": [{"name": "quality", "source": "HUMAN"}], "target": "quality"}, True),
                 ({"assessments": [{"name": "quality", "source": "LLM_JUDGE"}], "target": "quality"}, False),
-                ({"assessments": [{"name": "quality", "source": "HUMAN"}, {"name": "quality", "source": "HUMAN"}], "target": "quality"}, False),
+                (
+                    {
+                        "assessments": [
+                            {"name": "quality", "source": "HUMAN"},
+                            {"name": "quality", "source": "HUMAN"},
+                        ],
+                        "target": "quality",
+                    },
+                    False,
+                ),
             ),
             'sum(row["name"] == target and row["source"] == "HUMAN" for row in assessments) == 1',
         ),
@@ -452,8 +520,13 @@ def repair_tasks() -> tuple[RepairTask, ...]:
     )
 
 
-_SAFE_CALLS = {"all", "any", "bool", "dict", "float", "int", "len", "list", "max", "min", "set", "sorted", "str", "sum", "tuple"}
-_SAFE_METHODS = {"count", "endswith", "get", "isdisjoint", "issubset", "items", "keys", "lower", "removeprefix", "split", "startswith", "strip", "values"}
+_SAFE_CALLS = {
+    "all", "any", "bool", "dict", "float", "int", "len", "list", "max", "min", "set", "sorted", "str", "sum", "tuple"
+}
+_SAFE_METHODS = {
+    "count", "endswith", "get", "isdisjoint", "issubset", "items", "keys", "lower", "removeprefix", "split",
+    "startswith", "strip", "values"
+}
 _SAFE_NODES = (
     ast.Expression,
     ast.Constant,
@@ -636,7 +709,8 @@ def evaluate_response(
         "        passed = actual == case['expected']\n"
         "        records.append({'passed': bool(passed), 'actual': actual, 'expected': case['expected']})\n"
         "    except BaseException as error:\n"
-        "        records.append({'passed': False, 'error': type(error).__name__ + ': ' + str(error), 'expected': case['expected']})\n"
+        "        records.append({'passed': False, 'error': type(error).__name__ + ': ' + str(error), "
+        "'expected': case['expected']})\n"
         "print(json.dumps(records, sort_keys=True, allow_nan=False))\n",
         encoding="utf-8",
     )
@@ -785,12 +859,13 @@ def evaluate_policy(
     corpus_digest: str,
     trace_records: bool,
     generation_batch_size: int,
+    do_sample: bool = False,
 ) -> list[dict[str, Any]]:
     _queries, _responses, texts = _generate(
         trainer,
         tokenizer,
         tasks,
-        do_sample=False,
+        do_sample=do_sample,
         generation_batch_size=generation_batch_size,
     )
     records = []
@@ -923,6 +998,12 @@ def run_experiment(parameters: Mapping[str, Any]) -> dict[str, Any]:
     batch_size = int(parameters.get("batch_size", 8))
     mini_batch_size = int(parameters.get("mini_batch_size", 2))
     learning_rate = float(parameters.get("learning_rate", 1.0e-5))
+    enable_difficulty_screening = bool(parameters.get("enable_difficulty_screening", False))
+    screening_trials = int(parameters.get("screening_trials", 4))
+    screening_min_solve_rate = float(parameters.get("screening_min_solve_rate", 0.25))
+    screening_max_solve_rate = float(parameters.get("screening_max_solve_rate", 0.75))
+    enable_signal_density_metrics = bool(parameters.get("enable_signal_density_metrics", False))
+    enable_infrastructure_failure_masking = bool(parameters.get("enable_infrastructure_failure_masking", False))
     if ppo_updates < 1 or batch_size < 2 or mini_batch_size < 1 or batch_size % mini_batch_size:
         raise ValueError("invalid frozen PPO update/batch configuration")
     if not torch.cuda.is_available():
@@ -942,6 +1023,7 @@ def run_experiment(parameters: Mapping[str, Any]) -> dict[str, Any]:
     if {task.group_id for task in train_tasks} & {task.group_id for task in heldout_tasks}:
         raise AssertionError("training and held-out group manifests overlap")
     corpus_digest = corpus_fingerprint(tasks)
+    training_tasks = train_tasks
 
     run_id = mlflow.active_run().info.run_id
     output_root = Path(
@@ -1072,6 +1154,27 @@ def run_experiment(parameters: Mapping[str, Any]) -> dict[str, Any]:
         generation_batch_size=min(batch_size, 4),
     )
     baseline_summary = summarize_records(baseline_records)
+    if enable_difficulty_screening:
+        # Reset sampling so the screen is independently reproducible from seed.
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        solve_rates = estimate_base_solve_rates(
+            trainer=trainer, tokenizer=tokenizer, tasks=train_tasks, model_id=model_id, snapshot_root=snapshot_root,
+            corpus_digest=corpus_digest, generation_batch_size=min(batch_size, 4), trials=screening_trials,
+        )
+        training_tasks = select_tasks_in_solve_rate_band(
+            train_tasks, solve_rates, minimum=screening_min_solve_rate, maximum=screening_max_solve_rate
+        )
+        _write_json(
+            output_root / "base_train_difficulty_screen.json",
+            {"seed": seed, "trials": screening_trials,
+             "solve_rate_band": [screening_min_solve_rate, screening_max_solve_rate], "solve_rates": solve_rates,
+             "selected_task_ids": [task.task_id for task in training_tasks]},
+        )
+        mlflow.log_params({"coding_ppo.difficulty_screening": True, "coding_ppo.screening_trials": screening_trials,
+                          "coding_ppo.screening_min_solve_rate": screening_min_solve_rate,
+                          "coding_ppo.screening_max_solve_rate": screening_max_solve_rate,
+                          "coding_ppo.screened_train_tasks": len(training_tasks)})
     _write_json(output_root / "baseline_heldout.json", {"summary": baseline_summary, "records": baseline_records})
     mlflow.log_metrics(
         {
@@ -1085,7 +1188,7 @@ def run_experiment(parameters: Mapping[str, Any]) -> dict[str, Any]:
     rng = random.Random(seed)
     training_metrics: list[dict[str, Any]] = []
     for update in range(1, ppo_updates + 1):
-        selected = [train_tasks[rng.randrange(len(train_tasks))] for _ in range(batch_size)]
+        selected = [training_tasks[rng.randrange(len(training_tasks))] for _ in range(batch_size)]
         queries, responses, texts = _generate(
             trainer,
             tokenizer,
@@ -1103,8 +1206,23 @@ def run_experiment(parameters: Mapping[str, Any]) -> dict[str, Any]:
             )
             for offset, (task, response) in enumerate(zip(selected, texts, strict=True))
         ]
-        scores = [torch.tensor(float(value["reward"]), dtype=torch.float32) for value in evaluations]
-        stats = trainer.step(queries, responses, scores)
+        if enable_infrastructure_failure_masking:
+            retained_evaluations = mask_infrastructure_failures(evaluations, enabled=True)
+            retained_indices = [
+                index
+                for index, evaluation in enumerate(evaluations)
+                if str(evaluation["status"]) not in _INFRASTRUCTURE_FAILURE_STATUSES
+            ]
+            retained_queries = [queries[index] for index in retained_indices]
+            retained_responses = [responses[index] for index in retained_indices]
+            scores = [torch.tensor(float(value["reward"]), dtype=torch.float32) for value in retained_evaluations]
+            # An all-infrastructure batch carries no policy trajectory, so do not update.
+            stats = trainer.step(retained_queries, retained_responses, scores) if scores else {}
+        else:
+            # Keep the original object flow and trainer call byte-for-byte equivalent.
+            retained_evaluations = evaluations
+            scores = [torch.tensor(float(value["reward"]), dtype=torch.float32) for value in evaluations]
+            stats = trainer.step(queries, responses, scores)
         row = {
             "update": update,
             "mean_executable_reward": sum(float(value["reward"]) for value in evaluations) / batch_size,
@@ -1113,6 +1231,13 @@ def run_experiment(parameters: Mapping[str, Any]) -> dict[str, Any]:
             / sum(int(value["total_cases"]) for value in evaluations),
             "batch_unsafe_rate": sum(bool(value["unsafe"]) for value in evaluations) / batch_size,
         }
+        if enable_signal_density_metrics:
+            density = signal_density_metrics(evaluations)
+            dead_updates = sum(metric["batch_is_dead"] for metric in training_metrics) + density["batch_is_dead"]
+            row.update(density)
+            row["cumulative_dead_update_fraction"] = dead_updates / update
+        if enable_infrastructure_failure_masking:
+            row["batch_infrastructure_failures_masked"] = float(len(evaluations) - len(retained_evaluations))
         for target, source in (
             ("objective_kl", "objective/kl"),
             ("ppo_total_loss", "ppo/loss/total"),
