@@ -1224,7 +1224,7 @@ def run_experiment(parameters: Mapping[str, Any]) -> dict[str, Any]:
     baseline_summary = summarize_records(baseline_records)
     _write_json(output_root / "baseline_heldout.json", {"summary": baseline_summary, "records": baseline_records})
     if enable_difficulty_screening:
-        # Thirty trials disclose the estimator resolution: SE=sqrt(p(1-p)/n).
+        # Thirty trials disclose the estimator resolution in the screen artifact.
         torch.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
         solve_rates = estimate_base_reward_rates(

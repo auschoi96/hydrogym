@@ -77,7 +77,7 @@ def test_signal_density_distinguishes_dead_and_live_updates():
     }
 
 
-def test_infrastructure_mask_excludes_only_verifier_failures():
+def test_infrastructure_mask_excludes_only_timeouts():
     evaluations = [
         _evaluation("execution_timeout", -0.75),
         _evaluation("execution_error", -0.75),
@@ -124,6 +124,12 @@ def test_masked_step_never_calls_trainer_with_underfilled_batch():
     )
     assert stats == {} and len(retained) == 1 and skipped == 1
     assert trainer.calls == []
+    stats, retained, skipped = experiment.masked_ppo_step(
+        trainer=trainer, queries=["q0", "q1"], responses=["r0", "r1"],
+        evaluations=[_evaluation("executed", 1.0), _evaluation("executed", 0.5)], batch_size=2,
+    )
+    assert stats == {} and len(retained) == 2 and skipped == 0
+    assert trainer.calls == [2]
 
 
 def test_unserializable_policy_outputs_are_not_masked_as_infrastructure(tmp_path):
