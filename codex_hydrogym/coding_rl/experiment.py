@@ -27,7 +27,7 @@ PROTOCOL_PATH = Path("codex_hydrogym/agent_eval/CODING_AGENT_PPO_PROTOCOL.md")
 PACKAGE_PROTOCOL_PATH = Path("agent_eval/CODING_AGENT_PPO_PROTOCOL.md")
 ARTIFACT_PATH = "codex_hydrogym/coding_agent_ppo_v1"
 
-_INFRASTRUCTURE_FAILURE_STATUSES = frozenset({"execution_timeout"})
+_INFRASTRUCTURE_FAILURE_STATUSES: frozenset[str] = frozenset()
 
 
 def signal_density_metrics(evaluations: Sequence[Mapping[str, Any]]) -> dict[str, float]:
@@ -45,10 +45,32 @@ def signal_density_metrics(evaluations: Sequence[Mapping[str, Any]]) -> dict[str
     }
 
 
+def signal_density_update(
+    evaluations: Sequence[Mapping[str, Any]],
+    *,
+    skipped: bool,
+    completed_updates: int,
+    dead_updates: float,
+) -> tuple[dict[str, float], int, float]:
+    """Update density totals only when an optimizer update actually occurred."""
+    if skipped:
+        return {}, completed_updates, dead_updates
+    density = signal_density_metrics(evaluations)
+    completed_updates += 1
+    dead_updates += density["batch_is_dead"]
+    density["cumulative_dead_update_fraction"] = dead_updates / completed_updates
+    return density, completed_updates, dead_updates
+
+
 def mask_infrastructure_failures(
     evaluations: Sequence[Mapping[str, Any]], *, enabled: bool
 ) -> list[Mapping[str, Any]]:
-    """Remove timeouts only; verifier crashes remain because their cause may be policy output."""
+    """Retain every reward because no evaluator failure is proven to be infrastructure-caused.
+
+    In particular, ``execution_timeout`` covers the policy-generated expression and
+    the verifier in one subprocess budget. Without separate measurements, masking
+    that status would also make policy-caused nontermination free to PPO.
+    """
     if not enabled:
         return list(evaluations)
     return [
@@ -59,10 +81,15 @@ def mask_infrastructure_failures(
 
 
 def masked_ppo_step(
-    *, trainer: Any, queries: Sequence[Any], responses: Sequence[Any],
+    *, trainer: Any, tensor_adapter: Any, queries: Sequence[Any], responses: Sequence[Any],
     evaluations: Sequence[Mapping[str, Any]], batch_size: int,
 ) -> tuple[dict[str, Any], list[Mapping[str, Any]], int]:
-    """Apply the infrastructure mask without ever giving TRL an under-filled batch."""
+    """Apply the mask while keeping TRL stepping separate from tensor construction.
+
+    Production uses the real PPOTrainer for ``step`` and a tensor-only adapter for
+    reward construction. Keeping those interfaces separate here prevents a test
+    double from hiding incorrect production wiring.
+    """
     retained = mask_infrastructure_failures(evaluations, enabled=True)
     retained_indices = [
         index for index, evaluation in enumerate(evaluations)
@@ -72,7 +99,7 @@ def masked_ppo_step(
         return {}, retained, 1
     if not retained:
         return {}, retained, 1
-    scores = [trainer.tensor(float(value["reward"])) for value in retained]
+    scores = [tensor_adapter.tensor(float(value["reward"])) for value in retained]
     stats = trainer.step(
         [queries[index] for index in retained_indices],
         [responses[index] for index in retained_indices], scores,
@@ -104,6 +131,12 @@ def select_tasks_by_solve_rate_quantile(
     ordered = sorted(float(solve_rates[task.task_id]) for task in tasks)
     if not ordered:
         return ()
+    if ordered[0] == ordered[-1]:
+        raise ValueError(
+            "difficulty screening requires variation in measured reward rates; "
+            f"all {len(ordered)} training tasks measured {ordered[0]:.6g}"
+        )
+
     def quantile(q: float) -> float:
         position = q * (len(ordered) - 1)
         lower = math.floor(position)
@@ -111,6 +144,10 @@ def select_tasks_by_solve_rate_quantile(
         return ordered[lower] + (ordered[upper] - ordered[lower]) * (position - lower)
     low, high = quantile(lower_quantile), quantile(upper_quantile)
     selected = tuple(task for task in tasks if low <= solve_rates[task.task_id] <= high)
+    if len(selected) < minimum_selected:
+        raise ValueError(
+            f"difficulty screening selected {len(selected)} tasks; minimum is {minimum_selected}"
+        )
     return selected
 
 
@@ -1231,10 +1268,15 @@ def run_experiment(parameters: Mapping[str, Any]) -> dict[str, Any]:
             trainer=trainer, tokenizer=tokenizer, tasks=train_tasks, model_id=model_id, snapshot_root=snapshot_root,
             corpus_digest=corpus_digest, generation_batch_size=min(batch_size, 4), trials=screening_trials,
         )
-        training_tasks = select_tasks_by_solve_rate_quantile(
-            train_tasks, solve_rates, lower_quantile=screening_lower_quantile,
-            upper_quantile=screening_upper_quantile, minimum_selected=screening_min_selected,
-        )
+        selection_error = None
+        try:
+            training_tasks = select_tasks_by_solve_rate_quantile(
+                train_tasks, solve_rates, lower_quantile=screening_lower_quantile,
+                upper_quantile=screening_upper_quantile, minimum_selected=screening_min_selected,
+            )
+        except ValueError as error:
+            training_tasks = ()
+            selection_error = str(error)
         # Rewards are bounded to [-1.25, 1.75], so this is the worst-case
         # standard error bound for a mean of screening_trials observations.
         reward_se_bound = 1.5 / math.sqrt(screening_trials)
@@ -1247,17 +1289,15 @@ def run_experiment(parameters: Mapping[str, Any]) -> dict[str, Any]:
             "estimator_standard_errors": standard_errors,
             "estimator_standard_error_bound": reward_se_bound,
             "selected_task_ids": [task.task_id for task in training_tasks],
+            "selection_error": selection_error,
         })
         mlflow.log_params({"coding_ppo.difficulty_screening": True, "coding_ppo.screening_trials": screening_trials,
                           "coding_ppo.screening_lower_quantile": screening_lower_quantile,
                           "coding_ppo.screening_upper_quantile": screening_upper_quantile,
                           "coding_ppo.screening_min_selected": screening_min_selected,
                           "coding_ppo.screened_train_tasks": len(training_tasks)})
-        if len(training_tasks) < screening_min_selected:
-            raise ValueError(
-                f"difficulty screening selected {len(training_tasks)} tasks; "
-                f"minimum is {screening_min_selected}"
-            )
+        if selection_error is not None:
+            raise ValueError(f"difficulty screening failed: {selection_error}")
     mlflow.log_metrics(
         {
             "base/heldout_full_repair_rate": baseline_summary["full_repair_rate"],
@@ -1270,6 +1310,8 @@ def run_experiment(parameters: Mapping[str, Any]) -> dict[str, Any]:
     rng = random.Random(seed)
     training_metrics: list[dict[str, Any]] = []
     updates_skipped_infrastructure = 0
+    completed_ppo_updates = 0
+    dead_updates = 0.0
     for update in range(1, ppo_updates + 1):
         selected = [training_tasks[rng.randrange(len(training_tasks))] for _ in range(batch_size)]
         queries, responses, texts = _generate(
@@ -1296,7 +1338,7 @@ def run_experiment(parameters: Mapping[str, Any]) -> dict[str, Any]:
                     return torch.tensor(value, dtype=torch.float32)
 
             stats, retained_evaluations, skipped = masked_ppo_step(
-                trainer=_TorchTensorAdapter(), queries=queries, responses=responses,
+                trainer=trainer, tensor_adapter=_TorchTensorAdapter(), queries=queries, responses=responses,
                 evaluations=evaluations, batch_size=batch_size,
             )
             updates_skipped_infrastructure += skipped
@@ -1305,6 +1347,7 @@ def run_experiment(parameters: Mapping[str, Any]) -> dict[str, Any]:
             retained_evaluations = evaluations
             scores = [torch.tensor(float(value["reward"]), dtype=torch.float32) for value in evaluations]
             stats = trainer.step(queries, responses, scores)
+            skipped = 0
         row = {
             "update": update,
             "mean_executable_reward": sum(float(value["reward"]) for value in evaluations) / batch_size,
@@ -1314,10 +1357,13 @@ def run_experiment(parameters: Mapping[str, Any]) -> dict[str, Any]:
             "batch_unsafe_rate": sum(bool(value["unsafe"]) for value in evaluations) / batch_size,
         }
         if enable_signal_density_metrics:
-            density = signal_density_metrics(retained_evaluations)
-            dead_updates = sum(metric["batch_is_dead"] for metric in training_metrics) + density["batch_is_dead"]
+            density, completed_ppo_updates, dead_updates = signal_density_update(
+                retained_evaluations,
+                skipped=bool(skipped),
+                completed_updates=completed_ppo_updates,
+                dead_updates=dead_updates,
+            )
             row.update(density)
-            row["cumulative_dead_update_fraction"] = dead_updates / update
         if enable_infrastructure_failure_masking:
             row["batch_infrastructure_failures_masked"] = float(len(evaluations) - len(retained_evaluations))
             row["updates_skipped_infrastructure"] = float(updates_skipped_infrastructure)
