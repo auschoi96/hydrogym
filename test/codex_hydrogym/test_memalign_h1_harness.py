@@ -15,6 +15,7 @@ from codex_hydrogym.memalign_h1 import (
     FROZEN_T_CRITICAL_95,
 )
 from codex_hydrogym.memalign_h1.harness import (
+    DECISION_DEGENERATE,
     DECISION_FAIL,
     DECISION_INCONCLUSIVE,
     DECISION_PASS,
@@ -25,6 +26,7 @@ from codex_hydrogym.memalign_h1.harness import (
     heldout_agreement_metrics,
     mae,
 )
+from codex_hydrogym.memalign_h1.queue import manifest_digest
 
 
 def _row(group_id, base_score, aligned_score, human_score):
@@ -59,8 +61,11 @@ def test_mae_and_group_clustered_interval_reuse_frozen_statistics():
     per_group = {"a": -0.5, "b": -0.25, "c": -0.1, "d": -0.4}
     interval = group_clustered_delta_mae_ci(per_group_delta_mae=per_group)
     expected = _mean_ci(tuple(per_group.values()), FROZEN_T_CRITICAL_95)
-    assert interval == pytest.approx(expected)
+    for key, value in expected.items():
+        assert interval[key] == pytest.approx(value)
     assert interval["upper"] < 0.0
+    assert interval["standard_error"] > 0.0
+    assert interval["width"] > 0.0
 
     with pytest.raises(ValueError, match="exactly 4 group clusters"):
         group_clustered_delta_mae_ci(per_group_delta_mae={"a": 0.0, "b": 0.0, "c": 0.0})
@@ -80,6 +85,16 @@ def test_decision_rule_pass_fail_inconclusive():
     assert decide_h1(delta_mae_interval={"lower": -0.9, "upper": -0.1}) == DECISION_PASS
     assert decide_h1(delta_mae_interval={"lower": 0.1, "upper": 0.9}) == DECISION_FAIL
     assert decide_h1(delta_mae_interval={"lower": -0.1, "upper": 0.1}) == DECISION_INCONCLUSIVE
+    assert (
+        decide_h1(
+            delta_mae_interval={
+                "lower": 0.5,
+                "upper": 0.5,
+                "variance_state": DECISION_DEGENERATE,
+            }
+        )
+        == DECISION_DEGENERATE
+    )
 
 
 def test_heldout_agreement_reports_per_dimension_mae_including_regressions():
@@ -92,12 +107,16 @@ def test_heldout_agreement_reports_per_dimension_mae_including_regressions():
     assert dimension["delta_mae"] == pytest.approx(dimension["aligned_mae"] - dimension["base_mae"])
     assert dimension["delta_mae"] < 0.0
     assert metrics["group_clustered_ci_95"]["value"]["upper"] < 0.0
+    assert metrics["group_clustered_ci_95"]["value"]["standard_error"] > 0.0
+    assert metrics["group_clustered_ci_95"]["value"]["width"] > 0.0
     assert metrics["decision"] == DECISION_PASS
 
     regressing = _four_group_rows(base=None, aligned=5.0)  # base == human labels
     regression = heldout_agreement_metrics(rows=regressing)
     assert regression["per_dimension"]["value"]["delta_mae"] > 0.0
     assert regression["group_clustered_ci_95"]["value"]["lower"] > 0.0
+    assert regression["group_clustered_ci_95"]["value"]["standard_error"] > 0.0
+    assert regression["group_clustered_ci_95"]["value"]["width"] > 0.0
     assert regression["decision"] == DECISION_FAIL
 
     straddling = {"lower": -0.1, "upper": 0.1}
@@ -177,6 +196,83 @@ class _RecordingAligner:
         return SimpleNamespace(name=CRITIC_QUALITY_ASSESSMENT_NAME)
 
 
+def _heldout_provenance(rows):
+    digest = "d" * 64
+    manifest_rows = []
+    traces = {}
+    enriched = []
+    for index, supplied in enumerate(rows, start=1):
+        row = dict(supplied)
+        trace_id = f"heldout-trace-{index}"
+        assessment_id = f"assessment-{index}"
+        bundle_id = f"heldout-bundle-{index}"
+        arm = "codex" if index % 2 else "claude"
+        evidence_digest = f"{index:064x}"
+        manifest_rows.append(
+            {
+                "trace_id": trace_id,
+                "bundle_id": bundle_id,
+                "group_id": row["group_id"],
+                "arm": arm,
+                "fold": "heldout",
+                "evidence_digest": evidence_digest,
+            }
+        )
+        enriched.append(
+            {
+                **row,
+                "trace_id": trace_id,
+                "assessment_id": assessment_id,
+                "assessment_name": CRITIC_QUALITY_ASSESSMENT_NAME,
+                "source_type": "HUMAN",
+                "source_id": "panel@example.com",
+                "manifest_digest": digest,
+            }
+        )
+        traces[trace_id] = SimpleNamespace(
+            info=SimpleNamespace(
+                tags={
+                    "codex_hydrogym.group_id": row["group_id"],
+                    "codex_hydrogym.bundle_id": bundle_id,
+                    "codex_hydrogym.harness_arm": arm,
+                    "codex_hydrogym.evidence_digest": evidence_digest,
+                    "codex_hydrogym.critic_fold": "test",
+                    "codex_hydrogym.memalign_manifest_digest": digest,
+                },
+                assessments=[
+                    SimpleNamespace(
+                        assessment_id=assessment_id,
+                        name=CRITIC_QUALITY_ASSESSMENT_NAME,
+                        value=row["human_score"],
+                        source=SimpleNamespace(source_type="HUMAN", source_id="panel@example.com"),
+                    )
+                ],
+            )
+        )
+    mlflow = SimpleNamespace(get_trace=lambda trace_id: traces.get(trace_id))
+    manifest = {
+        "digest": digest,
+        "rows": manifest_rows,
+        "fold_by_group": {row["group_id"]: "heldout" for row in manifest_rows},
+        "counts": {"heldout_groups": 4, "heldout_traces": 4},
+    }
+    digest = manifest_digest(manifest)
+    manifest["digest"] = digest
+    for row in enriched:
+        row["manifest_digest"] = digest
+        traces[row["trace_id"]].info.tags["codex_hydrogym.memalign_manifest_digest"] = digest
+    frozen_record = {
+        "schema_version": "codex_hydrogym.memalign_h1.freeze_record.v1",
+        "manifest_digest": digest,
+        "commitment": {
+            "rows": manifest["rows"],
+            "fold_by_group": manifest["fold_by_group"],
+            "counts": manifest["counts"],
+        },
+    }
+    return manifest, frozen_record, enriched, mlflow
+
+
 def test_evaluate_h1_keeps_heldout_labels_out_of_alignment():
     train_traces = [
         _critic_trace("train-1", "codex"),
@@ -184,7 +280,8 @@ def test_evaluate_h1_keeps_heldout_labels_out_of_alignment():
         _critic_trace("train-2", "codex"),
         _critic_trace("train-2", "claude"),
     ]
-    heldout_rows = _four_group_rows(base=5.0, aligned=None)
+    raw_heldout_rows = _four_group_rows(base=5.0, aligned=None)
+    manifest, frozen_record, heldout_rows, mlflow = _heldout_provenance(raw_heldout_rows)
     aligner = _RecordingAligner()
 
     report = evaluate_h1(
@@ -195,6 +292,9 @@ def test_evaluate_h1_keeps_heldout_labels_out_of_alignment():
         reflection_lm="databricks:/reflection",
         embedding_model="databricks:/embedding",
         heldout_rows=heldout_rows,
+        manifest=manifest,
+        frozen_record=frozen_record,
+        mlflow_module=mlflow,
         optimizer_factory=_RecordingOptimizer,
         align_fn=aligner,
     )
@@ -212,14 +312,36 @@ def test_evaluate_h1_keeps_heldout_labels_out_of_alignment():
     assert report["heldout_label_count"] == 4
 
 
+def test_evaluate_h1_rejects_machine_or_uncommitted_heldout_labels():
+    manifest, frozen_record, heldout_rows, mlflow = _heldout_provenance(
+        _four_group_rows(base=5.0, aligned=None)
+    )
+    heldout_rows[0]["source_type"] = "LLM_JUDGE"
+    with pytest.raises(ValueError, match="exact attributable HUMAN"):
+        evaluate_h1(
+            train_traces=[],
+            train_bundle_ids=["train-1"],
+            heldout_bundle_ids=["heldout-1"],
+            base_judge=SimpleNamespace(name=CRITIC_QUALITY_ASSESSMENT_NAME),
+            reflection_lm="databricks:/reflection",
+            embedding_model="databricks:/embedding",
+            heldout_rows=heldout_rows,
+            manifest=manifest,
+            frozen_record=frozen_record,
+            mlflow_module=mlflow,
+            align_fn=_RecordingAligner(),
+        )
+
+
 def test_h1_harness_statistics_are_group_clustered_not_per_trace():
     """Two traces in one group never inflate the effective cluster count."""
     rows = []
-    for group_index in range(1, FROZEN_HELDOUT_GROUP_COUNT + 1):
+    expected_deltas = (0.2, 0.4, 0.6, 0.8)
+    for group_index, delta in enumerate(expected_deltas, start=1):
         group = f"h1_group_{group_index:02d}"
-        # base is closer to the humans than aligned is: delta-MAE +0.5 per group.
-        rows.append(_row(group, 1.5, 1.0, 2.0))
-        rows.append(_row(group, 1.5, 1.0, 3.0))
+        # Independently varying group deltas; base is exact and aligned is worse.
+        rows.append(_row(group, 2.0, 2.0 + delta, 2.0))
+        rows.append(_row(group, 3.0, 3.0 + delta, 3.0))
     metrics = heldout_agreement_metrics(rows=rows)
     assert metrics["per_dimension"]["value"]["heldout_traces"] == 8
     assert metrics["per_dimension"]["value"]["heldout_groups"] == FROZEN_HELDOUT_GROUP_COUNT
@@ -228,5 +350,17 @@ def test_h1_harness_statistics_are_group_clustered_not_per_trace():
     assert ci["t_critical"] == FROZEN_T_CRITICAL_95
     deltas = metrics["per_dimension"]["value"]["per_group_delta_mae"]
     assert len(deltas) == FROZEN_HELDOUT_GROUP_COUNT
-    assert all(value == pytest.approx(0.5) for value in deltas.values())  # aligned worse per group
+    assert sorted(deltas.values()) == pytest.approx(list(expected_deltas))
+    assert ci["standard_error"] > 0.0
+    assert ci["width"] > 0.0
     assert metrics["decision"] == DECISION_FAIL
+
+
+def test_zero_group_variance_is_explicitly_degenerate():
+    interval = group_clustered_delta_mae_ci(
+        per_group_delta_mae={"a": 0.5, "b": 0.5, "c": 0.5, "d": 0.5}
+    )
+    assert interval["standard_error"] == 0.0
+    assert interval["width"] == 0.0
+    assert interval["variance_state"] == DECISION_DEGENERATE
+    assert decide_h1(delta_mae_interval=interval) == DECISION_DEGENERATE

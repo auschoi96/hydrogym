@@ -48,6 +48,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--output", default="memalign_h1_manifest.json", help="frozen manifest JSON path")
     parser.add_argument(
+        "--freeze-record",
+        default="memalign_h1_manifest.freeze.json",
+        help="external create-once manifest commitment path",
+    )
+    parser.add_argument(
         "--test-group-count",
         type=int,
         default=4,
@@ -98,7 +103,11 @@ def _stage_preflight(args) -> dict[str, Any]:
 def _stage_queue(args) -> dict[str, Any]:
     import mlflow
 
-    from codex_hydrogym.memalign_h1.queue import build_locked_fold_manifest, select_coding_agent_traces
+    from codex_hydrogym.memalign_h1.queue import (
+        build_locked_fold_manifest,
+        freeze_manifest,
+        select_coding_agent_traces,
+    )
 
     mlflow.set_tracking_uri("databricks")
     selection = select_coding_agent_traces(
@@ -112,17 +121,25 @@ def _stage_queue(args) -> dict[str, Any]:
     )
     output = Path(args.output)
     output.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    return {"selection": selection, "manifest_path": str(output), "manifest": manifest}
+    freeze = freeze_manifest(manifest=manifest, path=args.freeze_record)
+    return {
+        "selection": selection,
+        "manifest_path": str(output),
+        "freeze_record_path": args.freeze_record,
+        "freeze_record": freeze,
+        "manifest": manifest,
+    }
 
 
 def _stage_enroll(args) -> dict[str, Any]:
     import mlflow
 
-    from codex_hydrogym.memalign_h1.queue import enroll_locked_folds
+    from codex_hydrogym.memalign_h1.queue import enroll_locked_folds, load_freeze_record
 
     mlflow.set_tracking_uri("databricks")
     manifest = json.loads(Path(args.output).read_text(encoding="utf-8"))
-    return enroll_locked_folds(manifest=manifest, mlflow_module=mlflow, require_digest=manifest["digest"])
+    frozen_record = load_freeze_record(args.freeze_record)
+    return enroll_locked_folds(manifest=manifest, frozen_record=frozen_record, mlflow_module=mlflow)
 
 
 def _stage_harness(args) -> dict[str, Any]:
@@ -165,8 +182,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"--profile must be one of {KNOWN_PROFILES} (the default gtm-ai-agent "
             "profile is never used; databricks.yml is never modified)"
         )
-    if args.test_group_count != 4:
-        raise SystemExit("--test-group-count must be 4: the frozen df=3 t-critical fixes four held-out groups")
     if args.print_counts_only:
         print(
             json.dumps(

@@ -15,7 +15,9 @@ from __future__ import annotations
 import hashlib
 import importlib
 import json
+import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from codex_hydrogym import CRITIC_QUALITY_ASSESSMENT_NAME, PROJECT_LABEL
@@ -25,6 +27,7 @@ from codex_hydrogym.genai.feedback import enroll_critic_quality_trace, matching_
 from codex_hydrogym.memalign_h1 import FROZEN_HELDOUT_GROUP_COUNT, H1_SPLIT_SALT, PROTOCOL_ID
 
 QUEUE_MANIFEST_SCHEMA_VERSION = "codex_hydrogym.memalign_h1.queue_manifest.v1"
+FREEZE_RECORD_SCHEMA_VERSION = "codex_hydrogym.memalign_h1.freeze_record.v1"
 
 HARNESS_ARMS = ("codex", "claude")
 _EVIDENCE_KIND_TAG = f"{PROJECT_LABEL}.evidence_kind"
@@ -52,6 +55,9 @@ class CandidateTrace:
     def as_dict(self) -> dict[str, Any]:
         return {
             "trace_id": self.trace_id,
+            # Kept as the canonical object for the immediate selection -> manifest
+            # pipeline.  The manifest itself emits only JSON-safe committed fields.
+            "bundle": self.bundle,
             "bundle_id": self.bundle.bundle_id,
             "group_id": self.bundle.group_id,
             "arm": self.arm,
@@ -174,6 +180,10 @@ def build_locked_fold_manifest(
     digest over the canonical payload; it must be persisted and frozen BEFORE any
     label is collected, and the same digest must gate enrollment.
     """
+    if test_group_count != FROZEN_HELDOUT_GROUP_COUNT:
+        raise ValueError(
+            f"test_group_count must equal the frozen held-out group count {FROZEN_HELDOUT_GROUP_COUNT}"
+        )
     materialized = [dict(record) for record in records]
     if not materialized:
         raise ValueError("at least one candidate record is required")
@@ -190,6 +200,10 @@ def build_locked_fold_manifest(
         record["bundle"] = bundle
         if record.get("bundle_id") != bundle.bundle_id or record.get("group_id") != bundle.group_id:
             raise ValueError("candidate record bundle/group identity must match its RunBundle")
+        if record.get("arm") not in HARNESS_ARMS:
+            raise ValueError(f"candidate record arm must be one of {HARNESS_ARMS}")
+        if record.get("evidence_digest") != bundle.evidence_digest:
+            raise ValueError("candidate record evidence digest must match its RunBundle")
 
     bundle_folds = grouped_bundle_split(
         bundles,
@@ -221,6 +235,20 @@ def build_locked_fold_manifest(
             }
         )
     rows.sort(key=lambda row: (row["fold"], row["group_id"], row["bundle_id"], row["arm"], row["trace_id"]))
+    rows_by_group: dict[str, list[dict[str, str]]] = {}
+    for row in rows:
+        rows_by_group.setdefault(row["group_id"], []).append(row)
+    for group_id, group_rows in rows_by_group.items():
+        arms = [row["arm"] for row in group_rows]
+        if sorted(arms) != sorted(HARNESS_ARMS):
+            raise ValueError(
+                f"group {group_id!r} must contain exactly one trace for each harness arm {HARNESS_ARMS}"
+            )
+    heldout_groups = sum(fold == "heldout" for fold in group_map.values())
+    if heldout_groups != FROZEN_HELDOUT_GROUP_COUNT:
+        raise ValueError(
+            f"manifest must contain exactly {FROZEN_HELDOUT_GROUP_COUNT} held-out groups; found {heldout_groups}"
+        )
 
     payload = {
         "schema_version": QUEUE_MANIFEST_SCHEMA_VERSION,
@@ -242,27 +270,85 @@ def build_locked_fold_manifest(
     return payload
 
 
+def freeze_manifest(*, manifest: Mapping[str, Any], path: str | Path) -> dict[str, Any]:
+    """Persist the initial manifest commitment once, before enrollment.
+
+    Creation is atomic and exclusive; an existing record is never overwritten.  The
+    read-only bit is defense in depth.  Enrollment trusts this external commitment,
+    never a digest supplied by the mutable manifest itself.
+    """
+    digest = manifest.get("digest")
+    if not isinstance(digest, str) or manifest_digest(manifest) != digest:
+        raise ValueError("manifest digest does not match its canonical payload")
+    record = {
+        "schema_version": FREEZE_RECORD_SCHEMA_VERSION,
+        "protocol_id": PROTOCOL_ID,
+        "manifest_digest": digest,
+        "commitment": {
+            "rows": manifest.get("rows"),
+            "fold_by_group": manifest.get("fold_by_group"),
+            "counts": manifest.get("counts"),
+        },
+    }
+    destination = Path(path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    descriptor = os.open(destination, flags, 0o444)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            handle.write(json.dumps(record, indent=2, sort_keys=True) + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+    except BaseException:
+        destination.unlink(missing_ok=True)
+        raise
+    return record
+
+
+def load_freeze_record(path: str | Path) -> dict[str, Any]:
+    """Load the separately persisted manifest commitment."""
+    record = json.loads(Path(path).read_text(encoding="utf-8"))
+    if record.get("schema_version") != FREEZE_RECORD_SCHEMA_VERSION:
+        raise ValueError("unrecognized manifest freeze record")
+    return record
+
+
+def validate_frozen_manifest(manifest: Mapping[str, Any], frozen_record: Mapping[str, Any]) -> str:
+    digest = manifest.get("digest")
+    if not isinstance(digest, str) or manifest_digest(manifest) != digest:
+        raise ValueError("manifest digest does not match its canonical payload")
+    if frozen_record.get("schema_version") != FREEZE_RECORD_SCHEMA_VERSION:
+        raise ValueError("unrecognized manifest freeze record")
+    if frozen_record.get("manifest_digest") != digest:
+        raise ValueError("manifest does not match the externally frozen digest")
+    expected = frozen_record.get("commitment")
+    actual = {
+        "rows": manifest.get("rows"),
+        "fold_by_group": manifest.get("fold_by_group"),
+        "counts": manifest.get("counts"),
+    }
+    if expected != actual:
+        raise ValueError("manifest rows, folds, counts, arms, or evidence digests differ from the freeze record")
+    return digest
+
+
 def enroll_locked_folds(
     *,
     manifest: Mapping[str, Any],
+    frozen_record: Mapping[str, Any],
     mlflow_module=None,
-    require_digest: str | None = None,
 ) -> dict[str, Any]:
     """Tag every manifest trace with its locked fold, reusing enroll_critic_quality_trace.
 
-    ``require_digest`` re-verifies the manifest SHA-256 before any tag is written so a
-    manifest mutated after freezing cannot drive enrollment.  Held-out folds map to the
+    The separately persisted ``frozen_record`` is mandatory.  A manifest cannot bless
+    a mutation by recomputing its own digest.  Held-out folds map to the
     repository's ``test`` fold tag -- the same tag the pair of harness arms already
     carries -- and enrollment refuses any trace that already has its one adjudicated
     label.
     """
     if not isinstance(manifest, Mapping):
         raise TypeError("manifest must be a mapping")
-    expected_digest = manifest.get("digest")
-    if not isinstance(expected_digest, str) or manifest_digest(manifest) != expected_digest:
-        raise ValueError("manifest digest does not match its canonical payload")
-    if require_digest is not None and expected_digest != require_digest:
-        raise ValueError(f"manifest digest {expected_digest} does not match the frozen digest {require_digest}")
+    expected_digest = validate_frozen_manifest(manifest, frozen_record)
     mlflow = mlflow_module or importlib.import_module("mlflow")
 
     rows = manifest.get("rows")
@@ -277,6 +363,11 @@ def enroll_locked_folds(
             trace_id=str(row["trace_id"]),
             fold="train" if fold == "train" else "test",
             mlflow_module=mlflow,
+        )
+        mlflow.set_trace_tag(
+            trace_id=str(row["trace_id"]),
+            key=f"{PROJECT_LABEL}.memalign_manifest_digest",
+            value=expected_digest,
         )
         enrolled.append(
             {

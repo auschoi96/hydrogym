@@ -14,6 +14,7 @@ from codex_hydrogym.memalign_h1.queue import (
     QUEUE_MANIFEST_SCHEMA_VERSION,
     build_locked_fold_manifest,
     enroll_locked_folds,
+    freeze_manifest,
     manifest_digest,
     select_coding_agent_traces,
 )
@@ -193,6 +194,24 @@ def test_selection_skips_non_runnable_and_already_labeled_traces_with_reasons():
     assert any("harness-arm" in reason for reason in reasons)
 
 
+def test_selection_output_feeds_manifest_without_hand_editing():
+    bundles = _fixture_bundles(8)
+    traces = [
+        _tagged_trace(
+            bundle,
+            "claude" if bundle.bundle_id.endswith("_claude") else "codex",
+            f"trace_{bundle.bundle_id}",
+        )
+        for bundle in bundles
+    ]
+    selection = select_coding_agent_traces(experiment_id="123", mlflow_module=_FakeMlflow(traces))
+
+    manifest = build_locked_fold_manifest(records=selection["candidates"])
+
+    assert manifest["counts"]["traces"] == 16
+    assert manifest["counts"]["heldout_groups"] == 4
+
+
 def test_locked_manifest_is_group_disjoint_ordered_and_digest_frozen():
     bundles = _fixture_bundles(8)
     records = _candidate_records(bundles)
@@ -242,38 +261,48 @@ def test_manifest_rejects_artifact_reuse_across_groups_loudly():
         physics_gates={gate: True for gate in REQUIRED_PHYSICS_GATES},
         metrics={},
     )
-    first = _measured_bundle("bundle_g1", "h1_group_01", "codex", shared_comparator=shared_comparator)
-    second = _measured_bundle("bundle_g2", "h1_group_02", "codex", shared_comparator=shared_comparator)
-    records = [
-        _record(first, "codex", "trace-g1"),
-        _record(second, "codex", "trace-g2"),
-    ]
+    bundles = []
+    for index in range(1, 6):
+        group = f"h1_group_{index:02d}"
+        bundles.append(
+            _measured_bundle(f"bundle_{group}_codex", group, "codex", shared_comparator=shared_comparator)
+        )
+        bundles.append(_measured_bundle(f"bundle_{group}_claude", group, "claude"))
 
     with pytest.raises(ValueError, match="same run artifact"):
-        build_locked_fold_manifest(records=records, test_group_count=1)
+        build_locked_fold_manifest(records=_candidate_records(bundles), test_group_count=4)
 
 
 def test_manifest_rejects_declared_identity_mismatch():
-    bundles = _fixture_bundles(4)
+    bundles = _fixture_bundles(5)
     records = _candidate_records(bundles)
     records[0]["group_id"] = "h1_group_other"
 
     with pytest.raises(ValueError, match="must match its RunBundle"):
-        build_locked_fold_manifest(records=records, test_group_count=2)
+        build_locked_fold_manifest(records=records, test_group_count=4)
 
 
-def test_enroll_tags_locked_folds_and_rechecks_the_frozen_digest():
+def test_manifest_enforces_frozen_group_count_and_complete_arms():
+    with pytest.raises(ValueError, match="frozen held-out group count"):
+        build_locked_fold_manifest(records=_candidate_records(_fixture_bundles(8)), test_group_count=3)
+    incomplete = _candidate_records(_fixture_bundles(5))[:-1]
+    with pytest.raises(ValueError, match="exactly one trace for each harness arm"):
+        build_locked_fold_manifest(records=incomplete)
+
+
+def test_enroll_tags_locked_folds_and_rechecks_the_frozen_digest(tmp_path):
     bundles = _fixture_bundles(8)
     records = _candidate_records(bundles)
     manifest = build_locked_fold_manifest(records=records, test_group_count=4, split_salt=H1_SPLIT_SALT)
 
     traces = [_tagged_trace(record["bundle"], record["arm"], record["trace_id"]) for record in records]
     mlflow = _FakeMlflow(traces)
-    outcome = enroll_locked_folds(manifest=manifest, mlflow_module=mlflow, require_digest=manifest["digest"])
+    frozen_record = freeze_manifest(manifest=manifest, path=tmp_path / "manifest.freeze.json")
+    outcome = enroll_locked_folds(manifest=manifest, frozen_record=frozen_record, mlflow_module=mlflow)
 
     assert outcome["count"] == 16
     assert outcome["review_state"] == "pending_adjudication"
-    assert len(mlflow.tag_calls) == 32
+    assert len(mlflow.tag_calls) == 48
     fold_by_trace = {row["trace_id"]: row["fold"] for row in manifest["rows"]}
     for call in mlflow.tag_calls:
         expected_tag = "train" if fold_by_trace[call["trace_id"]] == "train" else "test"
@@ -281,13 +310,17 @@ def test_enroll_tags_locked_folds_and_rechecks_the_frozen_digest():
             assert call["value"] == expected_tag
 
     mutated = json.loads(json.dumps(manifest))
-    mutated["fold_by_group"][next(iter(mutated["fold_by_group"]))] = "train"
-    with pytest.raises(ValueError, match="does not match its canonical payload"):
-        enroll_locked_folds(manifest=mutated, mlflow_module=_FakeMlflow(traces))
-
-    with pytest.raises(ValueError, match="does not match the frozen digest"):
+    target_group = next(iter(mutated["fold_by_group"]))
+    mutated["fold_by_group"][target_group] = (
+        "heldout" if mutated["fold_by_group"][target_group] == "train" else "train"
+    )
+    mutated["digest"] = manifest_digest(mutated)
+    with pytest.raises(ValueError, match="externally frozen digest"):
         enroll_locked_folds(
-            manifest=manifest,
+            manifest=mutated,
+            frozen_record=frozen_record,
             mlflow_module=_FakeMlflow(traces),
-            require_digest="0" * 64,
         )
+
+    with pytest.raises(FileExistsError):
+        freeze_manifest(manifest=manifest, path=tmp_path / "manifest.freeze.json")

@@ -23,24 +23,50 @@ gradient training) produces no change in agreement with held-out HUMAN labels:
 delta-MAE = 0, where delta-MAE = MAE(aligned) − MAE(base). A negative delta-MAE favors
 the aligned judge.
 
-## Required labels before H1 can be decided
+## Label budget and power analysis
 
-No eligible HUMAN assessment exists today (MemAlign has never run; preflight shows zero
-surviving assessments for every judge name). Before an H1 decision:
+No eligible HUMAN assessment or pilot variance estimate exists today. Submission
+mechanics and statistical sufficiency are separate:
 
-1. at least **50** adjudicated `critic_quality` HUMAN labels on the locked TRAIN fold —
-   exactly MLflow MemAlign's distillation batch cap (`_MAX_RECORDS_PER_BATCH`,
-   `memalign/utils.py:41`), distributed over groups so that no group straddles folds;
-2. exactly **8** held-out labels on the HELD-OUT fold — 4 group clusters × 2 harness
-   arms (`codex`, `claude`). The held-out fold must contain exactly **4** group
-   clusters because the 95% t-critical is frozen to the df=3 value used by
-   `codex_hydrogym.gate0.ensemble_diagnostic`
-   (`EnsembleDiagnosticSpec.seed_cluster_t_critical_95 = 3.182446305284263`, 4 clusters).
+- MLflow's `_MAX_RECORDS_PER_BATCH = 50` is only a **batching cap**. It says nothing
+  about sample sufficiency.
+- **50 TRAIN labels is a pilot guess**, not a powered training count. There is no real
+  MemAlign learning curve yet. A repeated group-resampled learning curve over the real
+  optimizer can only be run after labels exist; until then stabilization is unknown.
+- The proposed **8 held-out labels** are 4 groups × 2 arms. Four groups are an
+  underpowered pilot, not a confirmatory design.
 
-Total: **58** adjudicated `critic_quality` HUMAN labels (50 train + 8 held-out).
-Labels are collected only from the frozen manifest emitted by the labeling queue; the
-manifest SHA-256 is fixed BEFORE the first label is collected, and enrollment refuses
-any mutated manifest.
+`python -m codex_hydrogym.memalign_h1.power` is the preregisterable, seed-7021
+simulation. It applies the exact PASS/FAIL/INCONCLUSIVE rule to independent group
+level delta-MAEs, sweeps normal and standardized heavy-tailed t(5) distributions,
+group SDs 0.25/0.50/0.75, improvements 0 through 1.0, and unequal group sizes
+2/3/5/8. Groups remain equally weighted because rows within a group are not
+independent. The full PASS/FAIL/INCONCLUSIVE operating-characteristic sweep is frozen
+in `codex_hydrogym/agent_eval/MEMALIGN_H1_POWER_RESULTS.json`. For example, at SD
+0.50 under the normal simulation, effects 0/0.125/0.25/0.50/0.75/1.00 produce PASS
+probabilities 0.0244/0.0544/0.1078/0.2891/0.5318/0.7516, FAIL probabilities
+0.0242/0.0089/0.0032/0.0002/0/0, and the remainder INCONCLUSIVE. Under the exact
+normal model, the four-group true improvement required for a PASS is:
+
+| between-group SD | 50% PASS | 80% PASS |
+|---:|---:|---:|
+| 0.25 | 0.359 MAE | 0.532 MAE |
+| 0.50 | 0.717 MAE | 1.064 MAE |
+| 0.75 | 1.076 MAE | 1.596 MAE |
+
+Equivalently, four groups require 1.4342 × SD for 50% and 2.1279 × SD for 80%.
+There is no defensible unconditional minimum without pilot SD. At the preregistered
+plausible effect of 0.25 MAE and SD 0.50, **34 independent groups** are required for
+80% PASS probability; the code recomputes the correct df=33 t-critical
+(2.0345152974493383). That is **68 held-out labels** and, with the unvalidated
+50-label training pilot, **118 labels total**. Therefore **58 labels cannot reliably
+decide H1**. Human labeling should not proceed as a confirmatory study under the
+58-label design; first obtain explicit approval for a pilot or fund the larger design.
+
+Labels may only come from the frozen manifest. The initial digest plus rows, fold map,
+counts, arms, and evidence digests are written atomically to an external create-once
+freeze record before enrollment. Enrollment requires that record and rejects a
+mutated manifest even if someone recomputes its self-digest.
 
 ## Fold structure
 
@@ -86,9 +112,11 @@ only and never carries the decision.
   (upper bound < 0: the aligned judge agrees better with held-out HUMAN labels).
 - **FAIL** when the interval is wholly unfavorable (lower bound > 0: the aligned judge
   regressed). Regressions on any dimension are reported, not hidden.
-- **INCONCLUSIVE** when the interval straddles zero, or when the required label counts
-  do not exist yet. A negative H1 (FAIL or INCONCLUSIVE) is a legitimate result; there
-  is no tuning to pass.
+- **DEGENERATE** when the group-level sample standard deviation is zero and the
+  interval has zero width. This is not ordinary evidence and can never PASS or FAIL.
+- **INCONCLUSIVE** when the interval straddles zero, or when the pilot label counts do
+  not exist yet. A negative H1 (FAIL, DEGENERATE, or INCONCLUSIVE) is legitimate;
+  there is no tuning to pass.
 
 Per-dimension MAE for base and aligned judges is reported for the label schema's
 numeric dimension (`critic_quality`; the analysis is defined over D dimensions).
@@ -111,10 +139,13 @@ judge name, exactly how many assessments would survive and why each rejection ha
 A PASS licenses exactly one sentence: alignment improved held-out agreement with HUMAN
 `critic_quality` labels in this study. It licenses NO claim about:
 
-- reinforcement learning or the PPO trainer: the PPO reward is deterministic
-  (`coding_rl/experiment.py:1110-1114`) and MemAlign is not in that path;
+- reinforcement learning or the PPO trainer: MemAlign is not in that path, and this
+  study does not inspect or validate reward computation;
 - fluid performance, controller quality, TKE, or control effort;
 - `fluid_reward_plausibility`, GEPA, prompt promotion, or model promotion;
+- any claim that the reward function is better;
+- any claim that reward proposals are more physically plausible;
+- any claim that MemAlign improves reward engineering;
 - any judge score as proof of control improvement.
 
 ## Forbidden actions and claims

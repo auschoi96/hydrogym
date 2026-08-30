@@ -27,7 +27,7 @@ import random
 from statistics import fmean
 from typing import Any, Callable, Mapping, Sequence
 
-from codex_hydrogym import CRITIC_QUALITY_ASSESSMENT_NAME
+from codex_hydrogym import CRITIC_QUALITY_ASSESSMENT_NAME, PROJECT_LABEL
 from codex_hydrogym.gate0.ensemble_diagnostic import _mean_ci
 from codex_hydrogym.genai.optimization import align_critic_quality_judge
 from codex_hydrogym.memalign_h1 import (
@@ -44,6 +44,7 @@ PRIMARY_DIMENSION = "value"
 DECISION_PASS = "PASS"
 DECISION_FAIL = "FAIL"
 DECISION_INCONCLUSIVE = "INCONCLUSIVE"
+DECISION_DEGENERATE = "DEGENERATE"
 
 
 def _finite_number(value: Any, *, name: str) -> float:
@@ -87,7 +88,12 @@ def group_clustered_delta_mae_ci(
         )
     if not isinstance(t_critical, (int, float)) or isinstance(t_critical, bool):
         raise ValueError("t_critical must be numeric")
-    return _mean_ci(tuple(per_group_delta_mae[group] for group in groups), float(t_critical))
+    interval = _mean_ci(tuple(per_group_delta_mae[group] for group in groups), float(t_critical))
+    interval["width"] = interval["upper"] - interval["lower"]
+    interval["variance_state"] = (
+        DECISION_DEGENERATE if interval["standard_error"] <= 0.0 else "ESTIMABLE"
+    )
+    return interval
 
 
 def group_clustered_bootstrap_delta_mae_ci(
@@ -135,6 +141,8 @@ def decide_h1(*, delta_mae_interval: Mapping[str, float]) -> str:
     """
     lower = _finite_number(delta_mae_interval.get("lower"), name="interval.lower")
     upper = _finite_number(delta_mae_interval.get("upper"), name="interval.upper")
+    if delta_mae_interval.get("variance_state") == DECISION_DEGENERATE:
+        return DECISION_DEGENERATE
     if upper < 0.0:
         return DECISION_PASS
     if lower > 0.0:
@@ -216,6 +224,8 @@ def heldout_agreement_metrics(*, rows: Sequence[Mapping[str, Any]]) -> dict[str,
                 "standard_error": interval["standard_error"],
                 "lower": interval["lower"],
                 "upper": interval["upper"],
+                "width": interval["width"],
+                "variance_state": interval["variance_state"],
                 "t_critical": FROZEN_T_CRITICAL_95,
                 "group_clusters": FROZEN_HELDOUT_GROUP_COUNT,
             }
@@ -224,8 +234,90 @@ def heldout_agreement_metrics(*, rows: Sequence[Mapping[str, Any]]) -> dict[str,
         "bootstrap_ci_95_secondary": bootstrap_intervals,
         "decision": decision,
         "decision_rule": "PASS only when the held-out delta-MAE 95% interval is wholly "
-        "negative (upper < 0); FAIL when wholly positive; else INCONCLUSIVE",
+        "negative (upper < 0); FAIL when wholly positive; DEGENERATE when group "
+        "variance is zero; else INCONCLUSIVE",
     }
+
+
+def _assessment_id(assessment: Any) -> str | None:
+    value = getattr(assessment, "assessment_id", None) or getattr(assessment, "id", None)
+    return str(value) if value is not None else None
+
+
+def validate_heldout_label_provenance(
+    *,
+    rows: Sequence[Mapping[str, Any]],
+    manifest: Mapping[str, Any],
+    mlflow_module: Any,
+) -> list[dict[str, Any]]:
+    """Retrieve and validate every held-out score against its MLflow HUMAN assessment."""
+    digest = manifest.get("digest")
+    manifest_rows = {
+        str(row["trace_id"]): row
+        for row in manifest.get("rows", ())
+        if isinstance(row, Mapping) and row.get("fold") == "heldout"
+    }
+    if not isinstance(digest, str) or not manifest_rows:
+        raise ValueError("a frozen manifest with held-out rows is required")
+    validated = []
+    for supplied in rows:
+        row = dict(supplied)
+        required = (
+            "trace_id",
+            "assessment_id",
+            "assessment_name",
+            "source_type",
+            "source_id",
+            "manifest_digest",
+        )
+        if any(not isinstance(row.get(field), str) or not row[field] for field in required):
+            raise ValueError("every held-out row must carry complete assessment provenance")
+        trace_id = row["trace_id"]
+        committed = manifest_rows.get(trace_id)
+        if committed is None or row["manifest_digest"] != digest:
+            raise ValueError("held-out row is not committed by the frozen manifest")
+        trace = mlflow_module.get_trace(trace_id)
+        if trace is None:
+            raise ValueError(f"held-out trace does not exist: {trace_id}")
+        tags = getattr(getattr(trace, "info", None), "tags", {}) or {}
+        expected_tags = {
+            f"{PROJECT_LABEL}.group_id": committed["group_id"],
+            f"{PROJECT_LABEL}.bundle_id": committed["bundle_id"],
+            f"{PROJECT_LABEL}.harness_arm": committed["arm"],
+            f"{PROJECT_LABEL}.evidence_digest": committed["evidence_digest"],
+            f"{PROJECT_LABEL}.critic_fold": "test",
+            f"{PROJECT_LABEL}.memalign_manifest_digest": digest,
+        }
+        if any(tags.get(key) != value for key, value in expected_tags.items()):
+            raise ValueError("held-out trace provenance does not match the frozen manifest")
+        assessments = getattr(getattr(trace, "info", None), "assessments", ()) or ()
+        matches = [item for item in assessments if _assessment_id(item) == row["assessment_id"]]
+        if len(matches) != 1:
+            raise ValueError("held-out assessment id must identify exactly one MLflow assessment")
+        assessment = matches[0]
+        source = getattr(assessment, "source", None)
+        actual_name = getattr(assessment, "name", None)
+        actual_type = str(getattr(source, "source_type", None))
+        actual_source_id = getattr(source, "source_id", None)
+        if (
+            actual_name != CRITIC_QUALITY_ASSESSMENT_NAME
+            or row["assessment_name"] != CRITIC_QUALITY_ASSESSMENT_NAME
+            or actual_type != "HUMAN"
+            or row["source_type"] != "HUMAN"
+            or actual_source_id != row["source_id"]
+        ):
+            raise ValueError("held-out label must be the exact attributable HUMAN critic_quality assessment")
+        assessment_score = _finite_number(getattr(assessment, "value", None), name="assessment.value")
+        supplied_score = _finite_number(row.get("human_score"), name="human_score")
+        if not 1.0 <= assessment_score <= 5.0 or supplied_score != assessment_score:
+            raise ValueError("held-out human score must exactly match the 1-5 MLflow assessment value")
+        if str(row.get("group_id")) != str(committed["group_id"]):
+            raise ValueError("held-out group does not match the frozen manifest")
+        validated.append(row)
+    supplied_trace_ids = [row["trace_id"] for row in validated]
+    if len(supplied_trace_ids) != len(set(supplied_trace_ids)) or set(supplied_trace_ids) != set(manifest_rows):
+        raise ValueError("held-out scoring rows must cover every frozen held-out trace exactly once")
+    return validated
 
 
 def evaluate_h1(
@@ -237,6 +329,9 @@ def evaluate_h1(
     reflection_lm: str,
     embedding_model: str,
     heldout_rows: Sequence[Mapping[str, Any]],
+    manifest: Mapping[str, Any],
+    frozen_record: Mapping[str, Any],
+    mlflow_module: Any,
     retrieval_k: int = 5,
     required_arms: Sequence[str] = ("codex", "claude"),
     optimizer_factory: Callable[..., Any] | None = None,
@@ -250,6 +345,14 @@ def evaluate_h1(
     ``critic_quality`` HUMAN label (a machine-written assessment is rejected there).
     The returned report carries the held-out agreement metrics and the H1 decision.
     """
+    from codex_hydrogym.memalign_h1.queue import validate_frozen_manifest
+
+    validate_frozen_manifest(manifest, frozen_record)
+    validated_rows = validate_heldout_label_provenance(
+        rows=heldout_rows,
+        manifest=manifest,
+        mlflow_module=mlflow_module,
+    )
     align = align_fn if align_fn is not None else align_critic_quality_judge
     aligned_judge = align(
         train_traces=tuple(train_traces),
@@ -263,9 +366,10 @@ def evaluate_h1(
         optimizer_factory=optimizer_factory,
     )
 
-    agreement = heldout_agreement_metrics(rows=heldout_rows)
+    agreement = heldout_agreement_metrics(rows=validated_rows)
     agreement["aligned_judge_name"] = getattr(aligned_judge, "name", CRITIC_QUALITY_ASSESSMENT_NAME)
     agreement["train_bundle_count"] = len(set(train_bundle_ids))
     agreement["heldout_bundle_count"] = len(set(heldout_bundle_ids))
-    agreement["heldout_label_count"] = len(heldout_rows)
+    agreement["heldout_label_count"] = len(validated_rows)
+    agreement["manifest_digest"] = manifest["digest"]
     return agreement

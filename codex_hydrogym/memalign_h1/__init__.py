@@ -48,11 +48,14 @@ MEMALIGN_JUDGE_NAMES = (FEEDBACK_ASSESSMENT_NAME, CRITIC_QUALITY_ASSESSMENT_NAME
 FROZEN_T_CRITICAL_95 = 3.182446305284263
 FROZEN_HELDOUT_GROUP_COUNT = 4
 
-# Required adjudicated HUMAN critic_quality labels before H1 can be decided.  The train
-# fold needs at least 50 records -- exactly mlflow's MemAlign distillation batch cap
-# (_MAX_RECORDS_PER_BATCH, memalign/utils.py:41).  The held-out fold needs 4 groups x 2
-# harness arms (codex, claude) = 8 labels.  No eligible HUMAN label exists today.
-REQUIRED_TRAIN_LABEL_COUNT = 50
+# Submission mechanics and statistical sufficiency are intentionally separate.  MLflow
+# accepts at most 50 distillation records per batch.  Fifty TRAIN labels is only a
+# preregistered pilot guess: no real-label learning curve exists, so it is not claimed
+# sufficient.  Four held-out groups likewise form an underpowered pilot, not a powered
+# confirmatory design (see power.py and MEMALIGN_H1_PROTOCOL.md).
+MEMALIGN_MAX_RECORDS_PER_BATCH = 50
+PILOT_TRAIN_LABEL_COUNT = 50
+REQUIRED_TRAIN_LABEL_COUNT = PILOT_TRAIN_LABEL_COUNT
 REQUIRED_HELDOUT_LABEL_COUNT = 8
 REQUIRED_TOTAL_LABEL_COUNT = REQUIRED_TRAIN_LABEL_COUNT + REQUIRED_HELDOUT_LABEL_COUNT
 
@@ -72,6 +75,8 @@ __all__ = [
     "FROZEN_T_CRITICAL_95",
     "H1_SPLIT_SALT",
     "MEMALIGN_JUDGE_NAMES",
+    "MEMALIGN_MAX_RECORDS_PER_BATCH",
+    "PILOT_TRAIN_LABEL_COUNT",
     "PROTOCOL_ID",
     "PROTOCOL_PATH",
     "REQUIRED_HELDOUT_LABEL_COUNT",

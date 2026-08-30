@@ -1,0 +1,753 @@
+{
+  "assumptions": {
+    "plausible_group_sd": 0.5,
+    "plausible_true_improvement": 0.25,
+    "unequal_group_sizes": [
+      2,
+      3,
+      5,
+      8
+    ]
+  },
+  "four_group_thresholds": {
+    "0.25": {
+      "power_50": 0.3585387504359437,
+      "power_80": 0.5319873525925821
+    },
+    "0.5": {
+      "power_50": 0.7170775008718874,
+      "power_80": 1.0639747051851642
+    },
+    "0.75": {
+      "power_50": 1.0756162513078311,
+      "power_80": 1.5959620577777462
+    }
+  },
+  "groups_for_80_percent_power_at_plausible_effect": 34,
+  "heldout_labels_at_two_arms_per_group": 68,
+  "interpretation": "Negative delta-MAE favors alignment; groups, not rows, are independent.",
+  "schema_version": "codex_hydrogym.memalign_h1.power.v1",
+  "seed": 7021,
+  "sweep": [
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.25,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.02422,
+        "INCONCLUSIVE": 0.95138,
+        "PASS": 0.0244
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.0
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.25,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.00322,
+        "INCONCLUSIVE": 0.88899,
+        "PASS": 0.10779
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.125
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.25,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.00017,
+        "INCONCLUSIVE": 0.71077,
+        "PASS": 0.28906
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.25
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.25,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.0,
+        "INCONCLUSIVE": 0.24843,
+        "PASS": 0.75157
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.5
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.25,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.0,
+        "INCONCLUSIVE": 0.03334,
+        "PASS": 0.96666
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.75
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.25,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.0,
+        "INCONCLUSIVE": 0.00197,
+        "PASS": 0.99803
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 1.0
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.5,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.02422,
+        "INCONCLUSIVE": 0.95138,
+        "PASS": 0.0244
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.0
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.5,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.00887,
+        "INCONCLUSIVE": 0.93674,
+        "PASS": 0.05439
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.125
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.5,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.00322,
+        "INCONCLUSIVE": 0.88899,
+        "PASS": 0.10779
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.25
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.5,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.00017,
+        "INCONCLUSIVE": 0.71077,
+        "PASS": 0.28906
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.5
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.5,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.0,
+        "INCONCLUSIVE": 0.46822,
+        "PASS": 0.53178
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.75
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.5,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.0,
+        "INCONCLUSIVE": 0.24843,
+        "PASS": 0.75157
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 1.0
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.75,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.02422,
+        "INCONCLUSIVE": 0.95138,
+        "PASS": 0.0244
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.0
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.75,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.01259,
+        "INCONCLUSIVE": 0.94518,
+        "PASS": 0.04223
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.125
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.75,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.00643,
+        "INCONCLUSIVE": 0.92442,
+        "PASS": 0.06915
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.25
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.75,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.00144,
+        "INCONCLUSIVE": 0.84092,
+        "PASS": 0.15764
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.5
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.75,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.00017,
+        "INCONCLUSIVE": 0.71077,
+        "PASS": 0.28906
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.75
+    },
+    {
+      "distribution": "normal",
+      "group_count": 4,
+      "group_sd": 0.75,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 3e-05,
+        "INCONCLUSIVE": 0.55163,
+        "PASS": 0.44834
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 1.0
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.25,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.02104,
+        "INCONCLUSIVE": 0.95801,
+        "PASS": 0.02095
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.0
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.25,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.00151,
+        "INCONCLUSIVE": 0.87445,
+        "PASS": 0.12404
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.125
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.25,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 5e-05,
+        "INCONCLUSIVE": 0.64597,
+        "PASS": 0.35398
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.25
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.25,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.0,
+        "INCONCLUSIVE": 0.20627,
+        "PASS": 0.79373
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.5
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.25,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.0,
+        "INCONCLUSIVE": 0.05044,
+        "PASS": 0.94956
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.75
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.25,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.0,
+        "INCONCLUSIVE": 0.01327,
+        "PASS": 0.98673
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 1.0
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.5,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.02104,
+        "INCONCLUSIVE": 0.95801,
+        "PASS": 0.02095
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.0
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.5,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.00639,
+        "INCONCLUSIVE": 0.93736,
+        "PASS": 0.05625
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.125
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.5,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.00151,
+        "INCONCLUSIVE": 0.87445,
+        "PASS": 0.12404
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.25
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.5,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 5e-05,
+        "INCONCLUSIVE": 0.64597,
+        "PASS": 0.35398
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.5
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.5,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.0,
+        "INCONCLUSIVE": 0.39041,
+        "PASS": 0.60959
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.75
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.5,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.0,
+        "INCONCLUSIVE": 0.20627,
+        "PASS": 0.79373
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 1.0
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.75,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.02104,
+        "INCONCLUSIVE": 0.95801,
+        "PASS": 0.02095
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.0
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.75,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.00951,
+        "INCONCLUSIVE": 0.94887,
+        "PASS": 0.04162
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.125
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.75,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.00397,
+        "INCONCLUSIVE": 0.92152,
+        "PASS": 0.07451
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.25
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.75,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.00053,
+        "INCONCLUSIVE": 0.80985,
+        "PASS": 0.18962
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.5
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.75,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 5e-05,
+        "INCONCLUSIVE": 0.64597,
+        "PASS": 0.35398
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 0.75
+    },
+    {
+      "distribution": "scaled_t5",
+      "group_count": 4,
+      "group_sd": 0.75,
+      "group_sizes": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "probabilities": {
+        "DEGENERATE": 0.0,
+        "FAIL": 0.0,
+        "INCONCLUSIVE": 0.47144,
+        "PASS": 0.52856
+      },
+      "replicates": 100000,
+      "t_critical_95": 3.182446305284263,
+      "true_improvement": 1.0
+    }
+  ]
+}
