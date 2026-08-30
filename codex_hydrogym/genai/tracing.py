@@ -111,8 +111,6 @@ def configure_uc_trace_destination(*, environ: Mapping[str, str] | None = None, 
     return location
 
 
-
-
 @dataclass(frozen=True)
 class HarnessAnalysis:
     """A validated result plus operational measurements, never fluid evidence."""
