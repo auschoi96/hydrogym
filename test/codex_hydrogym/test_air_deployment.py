@@ -29,7 +29,8 @@ def test_h100_workload_is_labeled_single_device_and_builds_valid_config():
     assert workload["environment"]["version"] == "5"
     assert "jax[cuda12]==0.7.2" in workload["environment"]["dependencies"]
     assert "docker_image" not in workload["environment"]
-    assert workload["code_source"]["snapshot"]["root_path"] == "."
+    assert workload["code_source"]["snapshot"]["root_path"] == "../../.."
+    assert workload["code_source"]["snapshot"]["include_paths"] == ["codex_hydrogym", "hydrogym"]
     assert workload["command"].endswith("python -m codex_hydrogym.training.air_entrypoint")
     assert workload["mlflow_experiment_directory"].startswith("/Workspace/")
 

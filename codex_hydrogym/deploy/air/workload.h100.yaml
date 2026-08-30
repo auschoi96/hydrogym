@@ -23,7 +23,10 @@ environment:
 code_source:
   type: snapshot
   snapshot:
-    root_path: .
+    root_path: ../../..
+    include_paths:
+      - codex_hydrogym
+      - hydrogym
 
 compute:
   num_accelerators: 1
