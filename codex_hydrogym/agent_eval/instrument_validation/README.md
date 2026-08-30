@@ -33,13 +33,33 @@ For the constants above, the measured null false-positive rate is **0.032**
 (16/500; 95% Wilson binomial CI **[0.0197915, 0.0513449]**). Aggregate positive
 95% interval coverage is **0.9495** (1899/2000; 95% Wilson CI
 **[0.9390120, 0.9582645]**), and aggregate detection is
-**0.748**. Thus this frozen experiment is consistent with calibration at the
-nominal 95% interval level; the null estimate is below 5% and coverage is
-approximately 95%.
+**0.748**. The frozen-block FPR is 0.032, while the mean across eight
+independent seed blocks is 0.025; both are at or below 5%, and coverage is
+about 95%. This is a conservative null, not evidence of 5%-calibration: 500
+replicates cannot distinguish an observed 0.032 from 0.05. Conservativeness is
+safe for the preregistered wholly-above-zero decision rule because it limits
+false positive decisions rather than inflating them.
 
 Sensitivity by tier pair (`true delta: detection, coverage`) is: `(0,1)`
 `1.0: 0.520, 0.950`; `(1,3)` `2.0: 0.982, 0.940`; `(2,4)`
 `2.0: 0.978, 0.960`; `(3,4)` `1.0: 0.512, 0.948`. Detection is monotone in
-absolute true delta within the prospectively fixed 0.10 tolerance. Mean noisy
-Spearman rank correlation is 0.9952, above the fixed 0.90 threshold; no test
-compares recovered scores with `TIER_BASE_SCORE` values.
+absolute true delta within the prospectively fixed 0.10 tolerance, but the
+one-tier effect is detected only about 50% of the time at 10 groups and sigma
+1.0. The MDE at 80% power is about 1.4 tier-steps; roughly 18-20 groups are
+needed for 80% power for a one-tier effect (about 0.795 at n=18 and 0.853 at
+n=20, using df-matched criticals). Ten groups is insufficient for a one-tier
+effect.
+
+The null FPR and positive-interval coverage are sigma-robust over the tested
+range (sigma 0.5-2.0), remaining 0.032 and 0.950 respectively. Detection and
+the Spearman gate are sigma-fragile: at sigma 0.5/1.0/1.5/2.0, detection is
+0.989/0.748/0.501/0.334 and Spearman is 1.000/0.9952/0.9726/0.9420; at sigma
+3.0 the Spearman invariant fails (<0.90). Sigma = 1.0 is preregistered but
+lacks empirical grounding, so only the null and coverage conclusions survive
+sigma misspecification. Mean noisy Spearman rank correlation is 0.9952, above
+the fixed 0.90 threshold; no test compares recovered scores with
+`TIER_BASE_SCORE` values.
+
+A separate independent power analysis elsewhere in this project reached the
+same structural conclusion for its own four-group design: the group counts in
+use are underpowered for plausible effects.
