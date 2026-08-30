@@ -1,0 +1,59 @@
+name: Pytest
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+# Before round 2 of the frozen-metric fix, NO workflow in this repository ran
+# pytest, so the tamper-evident frozen-control-metric guard only ever executed
+# when a human ran pytest locally.  This workflow fixes that.
+#
+# Honesty about scope: the repo-wide suite is ALREADY RED for reasons that
+# predate the frozen-metric work (ruff/isort findings across the repo, plus
+# dependency-heavy test modules that need the full poetry environment: jax,
+# flax, gymnax, mlflow, ...).  This workflow therefore
+#   (1) REQUIRES the frozen-metric + guard tests, which run on a minimal
+#       dependency set (numpy, gymnasium, pytest) -- this is the job that makes
+#       the guard execute in CI; and
+#   (2) keeps an INFORMATIONAL, non-blocking run of the codex_hydrogym test
+#       suite visible so the pre-existing red is documented rather than hidden.
+#       (continue-on-error is pre-existing breakage, not a waived gate.)
+# Widening the required job to the full suite is tracked as follow-up work and
+# must NOT be done by weakening this workflow.
+
+jobs:
+  frozen-metric-guard:
+    name: Frozen metric + guard tests (required)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install minimal test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy gymnasium pytest
+      - name: Run frozen metric and guard tests
+        run: >
+          python -m pytest
+          test/codex_hydrogym/test_frozen_control_metric.py
+          test/codex_hydrogym/test_frozen_control_metric_guard.py
+          -ra
+
+  repo-suite-visibility:
+    name: codex_hydrogym suite (informational, pre-existing red)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install best-effort dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy gymnasium pytest jax
+      - name: Run codex_hydrogym test suite (non-blocking)
+        run: python -m pytest test/codex_hydrogym -q
